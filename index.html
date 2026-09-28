@@ -979,23 +979,6 @@
     return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
   }
 
-  // Decodes JWT payload to extract exact claim UID checked by m-stash DLAC
-  function getAuthUidFromToken(tokenStr) {
-    if (!tokenStr) return null;
-    try {
-      const base64Url = tokenStr.split('.')[1];
-      if (!base64Url) return null;
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      const parsed = JSON.parse(jsonPayload);
-      return parsed.uid || parsed.sub || parsed.id || parsed.userId || parsed.email || null;
-    } catch (e) {
-      return null;
-    }
-  }
-
   // Cross-browser robust clipboard helper
   async function copyTextToClipboard(text) {
     if (navigator.clipboard && window.isSecureContext) {
@@ -1250,25 +1233,45 @@
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                query: { namespace: targetNs },
-                limit: 10
+                query: {},
+                limit: 50
               })
             });
             if (res.ok) {
               const data = await res.json();
-              if (data.data && Array.isArray(data.data) && data.data.length > 0) {
-                matchedStash = data.data[data.data.length - 1];
+              const list = data.data || [];
+              if (Array.isArray(list) && list.length > 0) {
+                matchedStash = list.slice().reverse().find(s => 
+                  (s.tags && s.tags.includes(targetNs)) || 
+                  (s.summary && s.summary.includes(targetNs)) || 
+                  s.namespace === targetNs
+                ) || list[list.length - 1];
               }
             }
           }
 
           if (!matchedStash) {
-            const pubRes = await fetch(`${apiUrl.value}/v1/public/stashes?limit=50`);
+            const pubRes = await fetch(`${apiUrl.value}/v1/public/stashes?limit=50&tag=${encodeURIComponent(targetNs)}`);
             if (pubRes.ok) {
               const pubData = await pubRes.json();
               const list = pubData.data || pubData;
-              if (Array.isArray(list)) {
-                matchedStash = list.find(s => s && s.namespace === targetNs);
+              if (Array.isArray(list) && list.length > 0) {
+                matchedStash = list[list.length - 1];
+              }
+            }
+          }
+
+          if (!matchedStash) {
+            const pubResAll = await fetch(`${apiUrl.value}/v1/public/stashes?limit=50`);
+            if (pubResAll.ok) {
+              const pubData = await pubResAll.json();
+              const list = pubData.data || pubData;
+              if (Array.isArray(list) && list.length > 0) {
+                matchedStash = list.slice().reverse().find(s => 
+                  (s.tags && s.tags.includes(targetNs)) || 
+                  (s.summary && s.summary.includes(targetNs)) || 
+                  s.namespace === targetNs
+                ) || list[list.length - 1];
               }
             }
           }
@@ -1276,8 +1279,27 @@
           if (matchedStash) {
             isLandingDefault.value = false;
             portfolioTitle.value = matchedStash.title || targetNs;
-            if (Array.isArray(matchedStash.items) && matchedStash.items.length > 0) {
-              items.value = matchedStash.items;
+            
+            let parsedItems = [];
+            if (matchedStash.content) {
+              if (typeof matchedStash.content === 'string') {
+                try {
+                  const p = JSON.parse(matchedStash.content);
+                  if (Array.isArray(p)) parsedItems = p;
+                  else if (p && Array.isArray(p.items)) parsedItems = p.items;
+                } catch(e) {}
+              } else if (typeof matchedStash.content === 'object') {
+                if (Array.isArray(matchedStash.content)) parsedItems = matchedStash.content;
+                else if (Array.isArray(matchedStash.content.items)) parsedItems = matchedStash.content.items;
+              }
+            }
+
+            if (!parsedItems.length && Array.isArray(matchedStash.items)) {
+              parsedItems = matchedStash.items;
+            }
+
+            if (parsedItems.length > 0) {
+              items.value = parsedItems;
             }
             currentIndex.value = 0;
           }
@@ -1308,8 +1330,7 @@
           }
 
           token.value = data.token;
-          const extractedUid = getAuthUidFromToken(data.token);
-          user.value = data.user || { id: extractedUid || emailInput.value, email: emailInput.value };
+          user.value = data.user || { email: emailInput.value };
           localStorage.setItem('overdrive_token', data.token);
           localStorage.setItem('overdrive_user', JSON.stringify(user.value));
 
@@ -1345,7 +1366,9 @@
         }
       };
 
-      // EXTRA-ROBUST SAVE HANDLER: Fixes 400 Bad Request & 403 Forbidden
+      // STRICT m-stash 'stashes' SCHEMA COMPLIANT SAVE HANDLER
+      // Allowed write schema for stashes: title, summary, content, tags, isPublic
+      // ownerId, createdAt, updatedAt are hydrated natively by m-stash gateway.
       const handleSaveStash = async () => {
         saveLoading.value = true;
         saveError.value = '';
@@ -1362,42 +1385,34 @@
         const currentList = Array.isArray(items.value) ? items.value : [];
         const updatedItems = (targetNs === namespace.value) ? [...currentList, newItem] : [newItem];
 
-        const tokenUid = getAuthUidFromToken(token.value);
-        const ownerIdentifier = tokenUid || user.value?.id || user.value?.uid || user.value?._id || user.value?.email;
-
-        const doc = {
-          ownerId: ownerIdentifier,
-          namespace: targetNs,
+        const stashPayload = {
           title: newTitle.value || targetNs,
-          items: updatedItems,
-          isPublic: isPublic.value,
-          summary: `mdb-overdrive showcase for ${targetNs}`
+          summary: `mdb-overdrive showcase for #${targetNs}`,
+          content: JSON.stringify({ namespace: targetNs, items: updatedItems }),
+          tags: [targetNs],
+          isPublic: isPublic.value
         };
 
         try {
-          // Provide both "payload" and "document" fields in body so m-stash Go struct parser handles it cleanly
           const res = await fetch(`${apiUrl.value}/v1/db/stashes/insertOne`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token.value}`,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-              payload: doc,
-              document: doc
-            })
+            body: JSON.stringify({ payload: stashPayload })
           });
 
           if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.message || errData.error || `Insert rejected by DLAC security rule (${res.status})`);
+            throw new Error(errData.message || errData.error || `Insert rejected by m-stash schema rule (${res.status})`);
           }
 
           window.location.hash = targetNs;
           hasHash.value = true;
           isLandingDefault.value = false;
           namespace.value = targetNs;
-          portfolioTitle.value = doc.title;
+          portfolioTitle.value = stashPayload.title;
           items.value = updatedItems;
           currentIndex.value = updatedItems.length - 1;
 
