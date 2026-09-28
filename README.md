@@ -167,7 +167,7 @@ curl -X POST "http://localhost:4000/v1/db/stashes/find" \
 Both projects are open-source and ready for exploration:
 
 - **Live Showcase Demo:** [mdb-overdrive.vercel.app](https://mdb-overdrive.vercel.app)
-- **Frontend Source:** [github.com/ranfysvalle02/mdb-overdrive](https://github.com/ranfysvalle02/mdb-overdrive) *(migrated from the prototype drivefolio repository)*
+- **Frontend Source:** [github.com/ranfysvalle02/mdb-overdrive](https://github.com/ranfysvalle02/mdb-overdrive)
 - **m-stash Go Gateway:** [github.com/ranfysvalle02/m-stash](https://github.com/ranfysvalle02/m-stash)
 - **Official Docker Hub Container:** [hub.docker.com/r/oblivio/m-stash](https://hub.docker.com/r/oblivio/m-stash)
 
