@@ -469,18 +469,29 @@
         <div v-if="totalItems > 0" class="player-shell relative isolate w-full aspect-video overflow-hidden rounded-3xl border border-neutral-800 bg-black group">
           <transition :name="slideDirection === 'next' ? 'reel-next' : 'reel-prev'" mode="out-in">
             <div :key="`${currentIndex}-${currentItem?.url}`" class="absolute inset-0">
-              <div v-if="mediaLoadState === 'loading' && currentMediaType !== 'link'" class="media-sheen absolute inset-0 z-10 grid place-items-center bg-neutral-950" aria-live="polite">
+              <div v-if="mediaLoadState === 'loading' && currentMediaType !== 'link' && (!embeddedMediaDeferred || embedActivated)" class="media-sheen absolute inset-0 z-10 grid place-items-center bg-neutral-950" aria-live="polite">
                 <div class="text-center">
                   <span class="inline-block h-7 w-7 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></span>
                   <p class="mt-3 text-[11px] font-bold uppercase tracking-widest text-neutral-500">Preparing {{ currentMediaType }}</p>
                 </div>
               </div>
 
+              <div v-if="embeddedMediaDeferred && !embedActivated" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-neutral-950 p-8 text-center">
+                <div class="mb-5 grid h-16 w-16 place-items-center rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 shadow-2xl shadow-cyan-500/20">
+                  <svg class="ml-1 h-7 w-7" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5.14v13.72a1 1 0 001.52.86l10.3-6.86a1 1 0 000-1.72L9.52 4.28A1 1 0 008 5.14z" /></svg>
+                </div>
+                <p class="font-mono text-[10px] font-bold uppercase text-cyan-300">{{ currentMediaType }} preview</p>
+                <h3 class="mt-2 text-lg font-black text-white sm:text-xl">{{ currentItem.title }}</h3>
+                <p class="mt-2 max-w-md text-xs leading-relaxed text-neutral-400">Load the interactive preview when you are ready.</p>
+                <button @click="activateEmbed" class="mt-5 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-extrabold text-black shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300 active:scale-95">Load preview</button>
+              </div>
+
               <iframe
-                v-if="['drive', 'youtube', 'vimeo', 'pdf'].includes(currentMediaType)"
+                v-if="['drive', 'youtube', 'vimeo', 'pdf'].includes(currentMediaType) && (!embeddedMediaDeferred || embedActivated)"
                 :src="currentMediaSource"
                 class="h-full w-full border-0 bg-black"
                 allow="autoplay; fullscreen; picture-in-picture"
+                loading="lazy"
                 :title="currentItem.title"
                 @load="handleMediaLoaded"
                 @error="handleMediaError"
@@ -1381,6 +1392,9 @@
       const mediaLoadState = ref('loading');
       const mediaError = ref('');
       const slideDirection = ref('next');
+      const deferHeavyEmbeds = window.matchMedia('(max-width: 767px), (pointer: coarse)').matches || navigator.connection?.saveData === true;
+      const embedActivated = ref(!deferHeavyEmbeds);
+      const embeddedMediaDeferred = computed(() => deferHeavyEmbeds && ['drive', 'youtube', 'vimeo', 'pdf'].includes(currentMediaType.value));
       const filteredAdminResources = computed(() => {
         if (adminVisibility.value === 'all') return adminResources.value;
         return adminResources.value.filter((resource) => resource.visibility === adminVisibility.value);
@@ -1760,6 +1774,7 @@
         currentIndex.value = 0;
         mediaLoadState.value = 'loading';
         mediaError.value = '';
+        embedActivated.value = !deferHeavyEmbeds;
       };
 
       // Auth Handlers (Signup / Login)
@@ -1984,6 +1999,7 @@
         slideDirection.value = 'next';
         mediaLoadState.value = 'loading';
         mediaError.value = '';
+        embedActivated.value = !deferHeavyEmbeds;
         currentIndex.value = (currentIndex.value + 1) % totalItems.value;
       };
 
@@ -1992,6 +2008,7 @@
         slideDirection.value = 'prev';
         mediaLoadState.value = 'loading';
         mediaError.value = '';
+        embedActivated.value = !deferHeavyEmbeds;
         currentIndex.value = (currentIndex.value - 1 + totalItems.value) % totalItems.value;
       };
 
@@ -2000,7 +2017,14 @@
         slideDirection.value = index > currentIndex.value ? 'next' : 'prev';
         mediaLoadState.value = 'loading';
         mediaError.value = '';
+        embedActivated.value = !deferHeavyEmbeds;
         currentIndex.value = index;
+      };
+
+      const activateEmbed = () => {
+        mediaLoadState.value = 'loading';
+        mediaError.value = '';
+        embedActivated.value = true;
       };
 
       const handleMediaLoaded = () => {
@@ -2164,6 +2188,8 @@
         mediaLoadState,
         mediaError,
         slideDirection,
+        embedActivated,
+        embeddedMediaDeferred,
         currentReelSlug,
         apiStatus,
         responseLog,
@@ -2226,6 +2252,7 @@
         nextSlide,
         prevSlide,
         goToSlide,
+        activateEmbed,
         handleMediaLoaded,
         handleMediaError,
         openShareModal,
