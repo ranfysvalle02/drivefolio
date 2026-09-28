@@ -46,13 +46,28 @@
         width: min(100%, calc((100dvh - 13.5rem) * 1.7778));
       }
     }
-    .player-stage:fullscreen {
+    .player-stage.is-theater {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
       width: 100vw;
+      width: 100dvw;
       height: 100vh;
+      height: 100dvh;
       max-width: none;
       aspect-ratio: auto;
+      margin: 0;
       border: 0;
       border-radius: 0;
+    }
+    body:has(.player-stage.is-theater) {
+      overflow: hidden;
+    }
+    .theater-active {
+      z-index: 50;
+    }
+    .drive-popout-replacement {
+      display: none;
     }
     .media-sheen::after {
       content: '';
@@ -100,9 +115,31 @@
         border-radius: 0.75rem;
       }
     }
+    @media (max-width: 480px) and (orientation: portrait) {
+      .player-stage:not(.is-theater) {
+        height: clamp(18rem, 60dvh, 26rem);
+        aspect-ratio: auto;
+      }
+      .player-source-link {
+        display: none;
+      }
+    }
     @media (orientation: landscape) and (max-height: 700px) {
       .player-stage {
         width: min(100%, calc((100dvh - 10rem) * 1.7778));
+      }
+    }
+    @media (orientation: landscape) and (max-height: 480px) {
+      .player-source-link {
+        display: none;
+      }
+    }
+    @media (max-width: 480px), (max-height: 480px) {
+      .drive-popout-replacement {
+        display: grid;
+      }
+      .player-primary-expand {
+        display: none;
       }
     }
   </style>
@@ -180,7 +217,7 @@
       </div>
     </header>
 
-    <main class="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 max-w-6xl w-full mx-auto relative z-10">
+    <main :class="{ 'theater-active': isPlayerTheater && totalItems > 0 }" class="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 max-w-6xl w-full mx-auto relative z-10">
       <div v-if="!user && !routeUsername && !demoMode" class="w-full max-w-xl my-6">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden glow-cyan">
           
@@ -495,7 +532,7 @@
         </div>
 
         <!-- Overdrive Player Viewport -->
-        <div v-if="totalItems > 0" ref="playerShell" class="player-stage player-shell group relative isolate overflow-hidden rounded-3xl border border-neutral-800 bg-black">
+        <div v-if="totalItems > 0" :class="{ 'is-theater': isPlayerTheater }" class="player-stage player-shell group relative isolate overflow-hidden rounded-3xl border border-neutral-800 bg-black">
           <transition :name="slideDirection === 'next' ? 'reel-next' : 'reel-prev'" mode="out-in">
             <div :key="`${currentIndex}-${currentItem?.url}`" class="absolute inset-0">
               <div v-if="mediaLoadState === 'loading' && currentMediaType !== 'link'" class="media-sheen absolute inset-0 z-10 grid place-items-center bg-neutral-950" aria-live="polite">
@@ -564,14 +601,19 @@
               </div>
               <div class="pointer-events-none absolute left-3 top-3 z-20 rounded-md border border-white/10 bg-black/70 px-2 py-1 font-mono text-[9px] font-bold uppercase text-neutral-300 backdrop-blur-md">{{ currentMediaType }}</div>
               <div class="absolute right-3 top-3 z-20 flex items-center gap-1.5">
-                <button v-if="fullscreenSupported" @click="togglePlayerFullscreen" :aria-label="isPlayerFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'" :title="isPlayerFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'" class="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-black/70 text-neutral-300 backdrop-blur-md transition hover:border-cyan-400/60 hover:text-cyan-300">
-                  <svg v-if="!isPlayerFullscreen" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75h-4.5v4.5m12-4.5h4.5v4.5m0 7.5v4.5h-4.5m-7.5 0h-4.5v-4.5" /></svg>
-                  <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 8.25h4.5v-4.5m12 4.5h-4.5v-4.5m0 16.5v-4.5h4.5m-12-12v4.5h-4.5m4.5 7.5v4.5h-4.5" /></svg>
+                <button @click="togglePlayerTheater" :aria-label="isPlayerTheater ? 'Close player' : 'Expand player'" :title="isPlayerTheater ? 'Close player' : 'Expand player'" class="player-primary-expand flex h-8 items-center gap-1.5 rounded-lg border border-white/10 bg-black/80 px-2.5 text-[10px] font-bold text-white backdrop-blur-md transition hover:border-cyan-400/60 hover:text-cyan-300">
+                  <svg v-if="!isPlayerTheater" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75h-4.5v4.5m12-4.5h4.5v4.5m0 7.5v4.5h-4.5m-7.5 0h-4.5v-4.5" /></svg>
+                  <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <span>{{ isPlayerTheater ? 'Close' : 'Expand' }}</span>
                 </button>
-                <a v-if="currentMediaType !== 'link'" :href="currentItem.url" target="_blank" rel="noopener noreferrer" aria-label="Open original media" title="Open original media" class="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-black/70 text-neutral-300 backdrop-blur-md transition hover:border-cyan-400/60 hover:text-cyan-300">
+                <a v-if="currentMediaType !== 'link' && !isPlayerTheater" :href="currentItem.url" target="_blank" rel="noopener noreferrer" aria-label="Open original media" title="Open original media" class="player-source-link grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-black/70 text-neutral-300 backdrop-blur-md transition hover:border-cyan-400/60 hover:text-cyan-300">
                   <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5M10.5 13.5L21 3m0 0h-6.75M21 3v6.75" /></svg>
                 </a>
               </div>
+              <button v-if="currentMediaType === 'drive'" @click="togglePlayerTheater" :aria-label="isPlayerTheater ? 'Close player' : 'Expand player'" class="drive-popout-replacement absolute bottom-0 right-0 z-20 h-12 w-12 place-items-center border-l border-t border-white/10 bg-black text-white" :title="isPlayerTheater ? 'Close player' : 'Expand player'">
+                <svg v-if="!isPlayerTheater" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75h-4.5v4.5m12-4.5h4.5v4.5m0 7.5v4.5h-4.5m-7.5 0h-4.5v-4.5" /></svg>
+                <svg v-else class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
             </div>
           </transition>
 
@@ -1416,9 +1458,8 @@
       const mediaLoadState = ref('loading');
       const mediaError = ref('');
       const slideDirection = ref('next');
-      const playerShell = ref(null);
-      const isPlayerFullscreen = ref(false);
-      const fullscreenSupported = !!document.fullscreenEnabled && typeof document.documentElement.requestFullscreen === 'function';
+      const compactLandscape = window.matchMedia('(orientation: landscape) and (max-height: 480px)');
+      const isPlayerTheater = ref(compactLandscape.matches);
       const filteredAdminResources = computed(() => {
         if (adminVisibility.value === 'all') return adminResources.value;
         return adminResources.value.filter((resource) => resource.visibility === adminVisibility.value);
@@ -2041,17 +2082,8 @@
         currentIndex.value = index;
       };
 
-      const togglePlayerFullscreen = async () => {
-        if (!fullscreenSupported || !playerShell.value) return;
-        try {
-          if (document.fullscreenElement) {
-            await document.exitFullscreen();
-          } else {
-            await playerShell.value.requestFullscreen();
-          }
-        } catch (error) {
-          console.warn('Fullscreen is unavailable:', error);
-        }
+      const togglePlayerTheater = () => {
+        isPlayerTheater.value = !isPlayerTheater.value;
       };
 
       const handleMediaLoaded = () => {
@@ -2122,15 +2154,21 @@
       // Keyboard Shortcuts
       const handleKeyDown = (e) => {
         if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+        if (e.key === 'Escape' && isPlayerTheater.value) {
+          isPlayerTheater.value = false;
+          return;
+        }
         if (e.key === 'ArrowRight') nextSlide();
         if (e.key === 'ArrowLeft') prevSlide();
       };
 
       onMounted(async () => {
         window.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('fullscreenchange', () => {
-          isPlayerFullscreen.value = document.fullscreenElement === playerShell.value;
-        });
+        const syncCompactLandscape = (event) => {
+          isPlayerTheater.value = event.matches;
+        };
+        if (compactLandscape.addEventListener) compactLandscape.addEventListener('change', syncCompactLandscape);
+        else compactLandscape.addListener(syncCompactLandscape);
 
         let hasValidSession = false;
         if (token.value) {
@@ -2218,9 +2256,7 @@
         mediaLoadState,
         mediaError,
         slideDirection,
-        playerShell,
-        isPlayerFullscreen,
-        fullscreenSupported,
+        isPlayerTheater,
         currentReelSlug,
         apiStatus,
         responseLog,
@@ -2283,7 +2319,7 @@
         nextSlide,
         prevSlide,
         goToSlide,
-        togglePlayerFullscreen,
+        togglePlayerTheater,
         handleMediaLoaded,
         handleMediaError,
         openShareModal,
