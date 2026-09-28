@@ -9,13 +9,16 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap');
     
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
     .font-mono {
       font-family: 'JetBrains Mono', monospace;
+    }
+    .font-serif {
+      font-family: 'Newsreader', Georgia, serif;
     }
     .glass-panel {
       background: rgba(15, 17, 23, 0.88);
@@ -32,6 +35,9 @@
       opacity: 0;
       transform: scale(0.97);
     }
+    code, pre {
+      font-family: 'JetBrains Mono', monospace;
+    }
   </style>
 </head>
 <body class="bg-neutral-950 text-neutral-100 min-h-screen flex flex-col selection:bg-cyan-400 selection:text-black antialiased">
@@ -41,27 +47,23 @@
     <div class="bg-gradient-to-r from-cyan-950/90 via-blue-950/90 to-purple-950/90 border-b border-cyan-800/40 px-3 py-1.5 text-xs text-center text-cyan-200 flex items-center justify-center gap-2 flex-wrap z-50">
       <span class="bg-cyan-500/25 text-cyan-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border border-cyan-500/40 uppercase tracking-wider flex items-center gap-1">
         <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-        Public Beta
+        v2.0 DLAC Gateway
       </span>
-      <span class="font-medium">mdb-overdrive &bull; Powered by <button @click="mStashModalOpen = true" class="text-cyan-300 underline font-mono font-bold hover:text-white transition">m-stash</button> (Go DLAC Security Gateway)</span>
-      <span class="text-neutral-500 hidden sm:inline">&bull;</span>
-      <a href="https://github.com/ranfysvalle02/mdb-overdrive" target="_blank" rel="noopener noreferrer" class="text-white hover:text-cyan-300 underline font-semibold transition">
-        Frontend Repo
-      </a>
+      <span class="font-medium">mdb-overdrive &bull; Powered by <button @click="mStashModalOpen = true" class="text-cyan-300 underline font-mono font-bold hover:text-white transition">m-stash</button> (Identity &amp; Scoped Resources)</span>
       <span class="text-neutral-500 hidden sm:inline">&bull;</span>
       <button @click="mStashModalOpen = true" class="text-cyan-400 hover:text-cyan-200 font-mono font-bold underline transition flex items-center gap-1">
         <span>Why m-stash?</span>
-        <span class="text-[10px] bg-cyan-500/20 px-1.5 py-0.2 rounded border border-cyan-500/30">Adopt &rarr;</span>
+        <span class="text-[10px] bg-cyan-500/20 px-1.5 py-0.2 rounded border border-cyan-500/30">Architecture &rarr;</span>
       </button>
     </div>
 
+    <!-- Main Navigation Header -->
     <header class="border-b border-neutral-800/80 bg-neutral-900/75 backdrop-blur-xl sticky top-0 z-40 px-4 py-3">
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 sm:gap-4">
         
-        <!-- Brand & Namespace -->
+        <!-- Brand & Namespace Info -->
         <div class="flex items-center gap-3">
           <div @click="resetToHome" class="cursor-pointer bg-gradient-to-br from-cyan-400 via-teal-400 to-blue-600 p-2.5 rounded-xl text-black shadow-lg shadow-cyan-500/20 flex items-center justify-center transform hover:scale-105 active:scale-95 transition">
-            <!-- Turbo / Bolt Icon -->
             <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
               <path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z" />
             </svg>
@@ -72,31 +74,31 @@
                 mdb-overdrive
               </span>
               <span class="text-xs bg-neutral-800 text-cyan-300 font-mono px-2.5 py-0.5 rounded-full border border-neutral-700/80">
-                #{{ namespace }}
+                /{{ activeNamespaceSlug }}
               </span>
             </div>
             <p class="text-[11px] text-neutral-400 font-mono hidden sm:flex items-center gap-1.5">
-              <span>Proxy:</span>
+              <span>Endpoint:</span>
               <span class="text-neutral-300 font-semibold">{{ cleanApiHostname }}</span>
             </p>
           </div>
         </div>
 
-        <!-- System Controls & Auth -->
+        <!-- System Controls, Diagnostics & Auth -->
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
           
           <!-- m-stash Discovery Button -->
-          <button @click="mStashModalOpen = true" class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-800/60 text-xs font-mono text-cyan-300 transition hover:border-cyan-500" title="Discover m-stash Go Gateway">
+          <button @click="mStashModalOpen = true" class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-800/60 text-xs font-mono text-cyan-300 transition hover:border-cyan-500">
             <svg class="w-3.5 h-3.5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
             <span>What is m-stash?</span>
           </button>
 
-          <!-- Backend Status & Diagnostics Button -->
+          <!-- Gateway Diagnostics -->
           <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs font-mono">
             <button @click="endpointModalOpen = true" class="text-neutral-400 hover:text-cyan-400 flex items-center gap-1 transition" title="Diagnostics & API settings">
-              <span>Go:</span>
+              <span>Gateway:</span>
               <svg class="w-3 h-3 text-neutral-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
               </svg>
@@ -107,11 +109,11 @@
             </span>
             <button v-else-if="apiStatus === 'offline'" @click="endpointModalOpen = true" class="flex items-center gap-1 text-amber-400 hover:text-amber-300 font-semibold">
               <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              <span>Sleeping (Wake Up)</span>
+              <span>Offline / Idle</span>
             </button>
             <span v-else class="text-cyan-400 font-semibold flex items-center gap-1">
               <span class="animate-spin w-2.5 h-2.5 border border-cyan-400 border-t-transparent rounded-full"></span>
-              <span>{{ wakeCountdown > 0 ? `${wakeCountdown}s` : 'Connecting' }}</span>
+              <span>Connecting</span>
             </span>
           </div>
 
@@ -121,7 +123,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
             </svg>
             <span class="text-xs text-neutral-200 font-mono max-w-[110px] truncate">{{ user.email }}</span>
-            <button @click="logout" title="Sign out" class="text-neutral-500 hover:text-rose-400 transition ml-0.5">
+            <span class="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-1.5 py-0.2 rounded uppercase font-mono">{{ user.role || 'user' }}</span>
+            <button @click="logout" title="Sign out / Clear token" class="text-neutral-500 hover:text-rose-400 transition ml-0.5">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
               </svg>
@@ -131,7 +134,7 @@
             Sign In / Register
           </button>
 
-          <!-- Intuitive Share Button -->
+          <!-- Share Button -->
           <button @click="openShareModal" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-cyan-300 border border-neutral-700 hover:border-cyan-500/50 transition">
             <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
@@ -139,7 +142,7 @@
             <span>Share Reel</span>
           </button>
 
-          <!-- Add Item CTA -->
+          <!-- Add Reel / Resource CTA -->
           <button @click="openAddModal" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition shadow-lg shadow-cyan-500/20 active:scale-95">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -152,7 +155,7 @@
 
     <main class="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 max-w-6xl w-full mx-auto relative z-10">
       
-      <!-- DEFAULT STATE: Unauthenticated & No claimed slides yet -> High-Converting Clean Onboarding Card -->
+      <!-- DEFAULT STATE: Unauthenticated & No active reel -> Onboarding & Auth Shell -->
       <div v-if="!user && (!items || items.length === 0 || isLandingDefault)" class="w-full max-w-xl my-6">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden glow-cyan">
           
@@ -161,22 +164,22 @@
               <svg class="w-3.5 h-3.5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z" />
               </svg>
-              <span>Zero-Storage Cloud Reels</span>
+              <span>Identity In. Useful Data Out.</span>
             </div>
             <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Put Drive in Overdrive</h2>
             <p class="text-xs sm:text-sm text-neutral-400 mt-2 max-w-md mx-auto">
-              Turn raw Google Drive videos, PDFs, and decks into instant interactive showcases. All client-side via Google's preview sandbox—backed by an owner-scoped Go gateway.
+              Turn raw Google Drive decks, videos, and PDFs into instant interactive showcases. Powered by <strong class="text-cyan-300">m-stash</strong> owner-scoped resource routing.
             </p>
           </div>
 
-          <!-- Auth Mode Toggle -->
+          <!-- Auth Mode Switcher -->
           <div class="flex bg-neutral-950 p-1 rounded-xl mb-5 border border-neutral-800">
             <button 
               @click="authMode = 'signup'; authError = ''"
               :class="authMode === 'signup' ? 'bg-neutral-800 text-white font-semibold shadow-sm' : 'text-neutral-400 hover:text-white'"
               class="flex-1 py-2 text-xs rounded-lg transition"
             >
-              Sign Up
+              Claim Username (Sign Up)
             </button>
             <button 
               @click="authMode = 'login'; authError = ''"
@@ -187,8 +190,80 @@
             </button>
           </div>
 
-          <!-- Auth Form with Privacy Checkbox -->
-          <form @submit.prevent="handleAuthSubmit" class="space-y-4">
+          <!-- Sign Up Form -->
+          <form v-if="authMode === 'signup'" @submit.prevent="handleAuthSubmit" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Email</label>
+              <input 
+                type="email" 
+                required 
+                placeholder="creator@example.com"
+                v-model="emailInput"
+                class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition"
+              >
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Password (min 12 chars)</label>
+              <input 
+                type="password" 
+                required 
+                minlength="12"
+                placeholder="••••••••••••"
+                v-model="passwordInput"
+                class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition"
+              >
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-semibold text-neutral-300">Username (Namespace Slug)</label>
+                <span class="text-[10px] font-mono text-cyan-400">/{{ usernameInput || 'username' }}</span>
+              </div>
+              <input 
+                type="text" 
+                required 
+                maxlength="32"
+                placeholder="e.g. creative-pro"
+                v-model="usernameInput"
+                @input="validateUsername"
+                class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition font-mono"
+              >
+              <p class="text-[11px] mt-1 text-neutral-400" :class="{'text-rose-400': usernameHelpIssue, 'text-emerald-400': !usernameHelpIssue && usernameInput}">
+                {{ usernameHelpText }}
+              </p>
+            </div>
+
+            <div class="pt-1">
+              <label class="flex items-start gap-2.5 cursor-pointer text-xs text-neutral-400 select-none">
+                <input 
+                  type="checkbox" 
+                  v-model="acceptedPrivacy" 
+                  required
+                  class="mt-0.5 rounded bg-neutral-950 border-neutral-800 text-cyan-400 focus:ring-0"
+                >
+                <span>
+                  I accept the <button type="button" @click="privacyModalOpen = true" class="text-cyan-400 underline hover:text-cyan-300 font-medium">3-Point Privacy Policy</button> (zero file ingestion; media streams directly from Google Drive).
+                </span>
+              </label>
+            </div>
+
+            <div v-if="authError" class="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs">
+              {{ authError }}
+            </div>
+
+            <button 
+              type="submit" 
+              :disabled="authLoading || !!usernameHelpIssue || !acceptedPrivacy"
+              class="w-full py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span v-if="authLoading" class="animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
+              <span>Claim Username &amp; Launch Reel</span>
+            </button>
+          </form>
+
+          <!-- Log In Form -->
+          <form v-else @submit.prevent="handleAuthSubmit" class="space-y-4">
             <div>
               <label class="block text-xs font-semibold text-neutral-300 mb-1">Email</label>
               <input 
@@ -211,36 +286,21 @@
               >
             </div>
 
-            <!-- Plain-English Privacy Checkbox -->
-            <div class="pt-1">
-              <label class="flex items-start gap-2.5 cursor-pointer text-xs text-neutral-400 select-none">
-                <input 
-                  type="checkbox" 
-                  v-model="acceptedPrivacy" 
-                  required
-                  class="mt-0.5 rounded bg-neutral-950 border-neutral-800 text-cyan-400 focus:ring-0"
-                >
-                <span>
-                  I accept the <button type="button" @click="privacyModalOpen = true" class="text-cyan-400 underline hover:text-cyan-300 font-medium">3-Point Privacy Policy</button> (zero file ingestion; all media stays on your Google Drive).
-                </span>
-              </label>
-            </div>
-
             <div v-if="authError" class="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs">
               {{ authError }}
             </div>
 
             <button 
               type="submit" 
-              :disabled="authLoading || !acceptedPrivacy"
-              class="w-full py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="authLoading"
+              class="w-full py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
             >
               <span v-if="authLoading" class="animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
-              <span>{{ authMode === 'signup' ? 'Launch Your Free Reel' : 'Sign In' }}</span>
+              <span>Continue to Workspace</span>
             </button>
           </form>
 
-          <!-- Quick Preview / Instant Test -->
+          <!-- Quick Interactive Sample Reel Preview -->
           <div class="mt-6 pt-5 border-t border-neutral-800/80 flex items-center justify-between text-xs text-neutral-400">
             <span>Want to test the player immediately?</span>
             <button @click="loadSampleReel" class="text-cyan-400 hover:underline font-bold flex items-center gap-1">
@@ -250,37 +310,39 @@
           </div>
         </div>
 
-        <!-- m-stash Architecture Card on Onboarding -->
+        <!-- m-stash Architecture Callout Card -->
         <div class="glass-panel border border-neutral-800/90 rounded-3xl p-5 sm:p-6 mt-4 relative overflow-hidden bg-gradient-to-br from-neutral-900/70 via-neutral-950/90 to-cyan-950/20">
           <div class="flex items-start justify-between gap-4">
             <div class="space-y-1.5">
               <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-                <span class="text-xs font-mono uppercase tracking-widest text-cyan-400 font-bold">Behind the Scenes</span>
+                <span class="text-xs font-mono uppercase tracking-widest text-cyan-400 font-bold">m-stash Integration</span>
               </div>
-              <h3 class="text-sm sm:text-base font-bold text-white">How mdb-overdrive stores data with zero custom backend</h3>
+              <h3 class="text-sm sm:text-base font-bold text-white">Document-Level Access Control (DLAC) in Go</h3>
               <p class="text-xs text-neutral-400 leading-relaxed max-w-lg">
-                MongoDB killed client-side App Services &amp; the Data API. Instead of writing heavy Node/Express glue code, this app runs on <strong class="text-neutral-200">m-stash</strong>: a 15MB Go proxy that gives any web app instant, secure Document-Level Access Control (DLAC) over MongoDB.
+                Your authenticated session claims a permanent namespace route (<code class="text-cyan-300 font-mono">/v1/me/namespace</code>). Every item write maps cleanly to <code class="text-cyan-300 font-mono">/v1/me/resources/reel</code> without client-side owner ID tampering.
               </p>
             </div>
             <button @click="mStashModalOpen = true" class="shrink-0 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-cyan-500 hover:text-black text-cyan-300 font-mono text-xs font-bold transition border border-neutral-700 hover:border-transparent">
-              Learn &amp; Deploy &rarr;
+              Architecture &rarr;
             </button>
           </div>
         </div>
       </div>
 
-      <!-- SHOWCASE MODE: Active slides or claimed portfolio -->
+      <!-- SHOWCASE / WORKSPACE MODE -->
       <div v-else class="w-full">
         
-        <!-- Reel Header & Slide Nav -->
+        <!-- Reel Title & Sub-Bar Navigation -->
         <div class="w-full mb-4 flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2">
               <span>{{ portfolioTitle }}</span>
             </h1>
-            <p class="text-xs sm:text-sm text-neutral-400 mt-0.5">
-              Slide {{ totalItems > 0 ? currentIndex + 1 : 0 }} of {{ totalItems }} &bull; {{ currentItem ? currentItem.title : 'Empty Reel' }}
+            <p class="text-xs sm:text-sm text-neutral-400 mt-0.5 flex items-center gap-2">
+              <span>Slide {{ totalItems > 0 ? currentIndex + 1 : 0 }} of {{ totalItems }} &bull; {{ currentItem ? currentItem.title : 'Empty Reel' }}</span>
+              <span class="text-neutral-600">&bull;</span>
+              <span class="font-mono text-cyan-400 text-xs">/{{ activeNamespaceSlug }}/reel</span>
             </p>
           </div>
 
@@ -307,14 +369,14 @@
           </div>
         </div>
 
-        <!-- Carousel Viewport -->
+        <!-- Reel Carousel Sandbox Player Viewport -->
         <div v-if="totalItems > 0" class="relative w-full aspect-video rounded-3xl overflow-hidden bg-black border border-neutral-800 shadow-2xl group">
           <template v-for="(item, idx) in safeItems" :key="idx">
             <div 
               v-show="idx === currentIndex"
               class="absolute inset-0 transition-opacity duration-300"
             >
-              <!-- Official Google Drive Preview Iframe -->
+              <!-- Official Google Drive Sandbox Embed Iframe -->
               <iframe
                 v-if="item.url && item.url.includes('drive.google.com')"
                 :src="formatDrivePreviewUrl(item.url)"
@@ -323,7 +385,7 @@
                 :title="item.title"
               ></iframe>
 
-              <!-- Interactive Card Preview for placeholders -->
+              <!-- Interactive Visual Card for Placeholders/Notes -->
               <div v-else class="w-full h-full bg-gradient-to-tr from-neutral-950 via-neutral-900 to-neutral-950 flex flex-col items-center justify-center p-8 text-center">
                 <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 shadow-xl shadow-cyan-500/10">
                   <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
@@ -331,20 +393,20 @@
                   </svg>
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">{{ item.title }}</h3>
-                <p class="text-xs text-neutral-400 max-w-md mb-6">
-                  Paste any public Google Drive video, PDF, or presentation share link to stream it inside this reel.
+                <p class="text-xs text-neutral-400 max-w-md mb-6 leading-relaxed">
+                  {{ item.summary || 'Paste any public Google Drive sharing link (videos, PDFs, slides) to stream directly inside this player.' }}
                 </p>
                 <button @click="openAddModal" class="px-5 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-cyan-500/20">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
-                  <span>Connect Google Drive File</span>
+                  <span>Connect Drive Share URL</span>
                 </button>
               </div>
             </div>
           </template>
 
-          <!-- Hover Arrow Overlays -->
+          <!-- Hover Overlay Control Arrows -->
           <button 
             v-if="totalItems > 1"
             @click="prevSlide" 
@@ -360,29 +422,29 @@
             class="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-white opacity-0 group-hover:opacity-100 transition hover:scale-110 active:scale-95"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
           </button>
         </div>
 
-        <!-- Empty Slide Fallback -->
+        <!-- Fallback for empty reel in user namespace -->
         <div v-else class="w-full aspect-video rounded-3xl bg-neutral-900/50 border border-neutral-800 flex flex-col items-center justify-center p-6 text-center">
           <div class="p-4 rounded-full bg-neutral-800/80 text-neutral-400 mb-3">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
           </div>
-          <h3 class="text-base font-semibold text-white">No slides in #{{ namespace }}</h3>
-          <p class="text-xs text-neutral-400 max-w-sm mt-1 mb-4">Paste any public Google Drive sharing link to stream your first embed.</p>
+          <h3 class="text-base font-semibold text-white">No items in /{{ activeNamespaceSlug }}</h3>
+          <p class="text-xs text-neutral-400 max-w-sm mt-1 mb-4">Paste any public Google Drive URL to publish your first cloud slide.</p>
           <button @click="openAddModal" class="px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-bold transition flex items-center gap-1.5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            <span>Add Item</span>
+            <span>Add First Slide</span>
           </button>
         </div>
 
-        <!-- Pagination Indicator Dots -->
+        <!-- Dot Navigation Indicators -->
         <div v-if="totalItems > 1" class="flex items-center justify-center gap-2 mt-6 flex-wrap">
           <button
             v-for="(_, idx) in safeItems"
@@ -397,7 +459,7 @@
           ></button>
         </div>
 
-        <!-- m-stash Sticky Banner below showcase -->
+        <!-- Shared Resources & Namespace Info Footer Banner -->
         <div class="mt-8 p-4 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div class="flex items-center gap-2.5">
             <div class="p-1.5 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400">
@@ -406,24 +468,29 @@
               </svg>
             </div>
             <div>
-              <span class="font-bold text-white">Need a lightweight API proxy for your own apps?</span>
-              <span class="text-neutral-400 ml-1">Run <code class="text-cyan-300 font-mono">m-stash</code> on Docker or Fly.io in 30 seconds.</span>
+              <span class="font-bold text-white">Active Namespace Route:</span>
+              <code class="text-cyan-300 font-mono ml-1">/{{ activeNamespaceSlug }}</code>
+              <span class="text-neutral-500 ml-2">({{ isNamespacePublic ? 'Public' : 'Private' }})</span>
             </div>
           </div>
-          <button @click="mStashModalOpen = true" class="text-cyan-400 hover:text-cyan-300 font-mono font-bold underline flex items-center gap-1">
-            <span>Explore m-stash Architecture</span>
-            <span>&rarr;</span>
-          </button>
+          <div class="flex items-center gap-3">
+            <button @click="loadSharedData" class="text-neutral-400 hover:text-white font-mono text-[11px] underline">
+              Fetch Shared Resources &rarr;
+            </button>
+            <button @click="mStashModalOpen = true" class="text-cyan-400 hover:text-cyan-300 font-mono font-bold underline">
+              Explore API Specs &rarr;
+            </button>
+          </div>
         </div>
       </div>
     </main>
 
-    <!-- Header / Global Auth Trigger Modal -->
+    <!-- Header Auth Modal -->
     <transition name="fade">
       <div v-if="authModalOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-white">Sign In or Register</h2>
+            <h2 class="text-lg font-bold text-white">m-stash Identity</h2>
             <button @click="authModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
           </div>
 
@@ -467,24 +534,40 @@
               >
             </div>
 
+            <div v-if="authMode === 'signup'">
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Username (Namespace Slug)</label>
+              <input 
+                type="text" 
+                required 
+                maxlength="32"
+                placeholder="e.g. creative-pro"
+                v-model="usernameInput"
+                @input="validateUsername"
+                class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition font-mono"
+              >
+              <p class="text-[11px] mt-1" :class="{'text-rose-400': usernameHelpIssue, 'text-emerald-400': !usernameHelpIssue && usernameInput}">
+                {{ usernameHelpText }}
+              </p>
+            </div>
+
             <div v-if="authError" class="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs">
               {{ authError }}
             </div>
 
             <button 
               type="submit" 
-              :disabled="authLoading"
+              :disabled="authLoading || (authMode === 'signup' && !!usernameHelpIssue)"
               class="w-full py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
             >
               <span v-if="authLoading" class="animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
-              <span>{{ authMode === 'signup' ? 'Create Account' : 'Sign In' }}</span>
+              <span>{{ authMode === 'signup' ? 'Claim Username & Create Account' : 'Sign In' }}</span>
             </button>
           </form>
         </div>
       </div>
     </transition>
 
-    <!-- Intuitive & Feature-Rich Share Modal -->
+    <!-- Intuitive Share Modal -->
     <transition name="fade">
       <div v-if="shareModalOpen" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl relative glow-cyan">
@@ -497,14 +580,13 @@
               </div>
               <div>
                 <h2 class="text-base font-bold text-white">Share Reel Showcase</h2>
-                <p class="text-[11px] text-neutral-400 font-mono">#{{ namespace }} &bull; Direct access URL</p>
+                <p class="text-[11px] text-neutral-400 font-mono">/{{ activeNamespaceSlug }} &bull; Direct route</p>
               </div>
             </div>
             <button @click="shareModalOpen = false" class="text-neutral-500 hover:text-white transition text-xl leading-none">&times;</button>
           </div>
 
           <div class="space-y-4 text-xs">
-            <!-- Share Link Bar with Instant Copy -->
             <div>
               <label class="block font-semibold text-neutral-300 mb-1.5">Direct Reel Link</label>
               <div class="flex gap-2">
@@ -550,23 +632,21 @@
               </div>
             </div>
 
-            <!-- QR Code & Website Embed Accordion -->
+            <!-- QR Code & Website Embed -->
             <div class="pt-2 border-t border-neutral-800/80 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <!-- QR Code Card -->
               <div class="p-3 rounded-2xl bg-neutral-950 border border-neutral-800/80 flex items-center gap-3">
                 <img :src="qrCodeUrl" alt="QR Code" class="w-16 h-16 rounded-lg bg-white p-1 shrink-0">
                 <div>
                   <p class="font-bold text-white text-xs">Scan &amp; View</p>
-                  <p class="text-[10px] text-neutral-400">Scan QR code with any mobile camera to view instantly.</p>
+                  <p class="text-[10px] text-neutral-400">Scan QR code with any camera to view reel.</p>
                 </div>
               </div>
 
-              <!-- Embed Snippet -->
               <div class="p-3 rounded-2xl bg-neutral-950 border border-neutral-800/80 flex flex-col justify-between space-y-1.5">
                 <div class="flex items-center justify-between">
-                  <span class="font-bold text-white text-xs">Website Embed</span>
+                  <span class="font-bold text-white text-xs">Embed Code</span>
                   <button @click="copyEmbedSnippet" class="text-cyan-400 hover:underline font-mono text-[10px] font-bold">
-                    {{ copiedEmbed ? 'Copied Code!' : 'Copy iFrame HTML' }}
+                    {{ copiedEmbed ? 'Copied!' : 'Copy iFrame' }}
                   </button>
                 </div>
                 <p class="text-[10px] text-neutral-400 font-mono truncate">
@@ -588,39 +668,39 @@
               <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
-              Simple 3-Point Privacy Policy
+              3-Point Privacy Policy
             </h2>
             <button @click="privacyModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
           </div>
 
           <div class="space-y-3 text-xs text-neutral-300">
             <div class="p-3 bg-neutral-950 border border-neutral-800/80 rounded-2xl space-y-1">
-              <p class="font-bold text-white">1. Zero Ingestion</p>
-              <p class="text-neutral-400">Your files never touch our servers. Media streams directly through Google's official <code class="text-cyan-400 font-mono">/preview</code> sandbox.</p>
+              <p class="font-bold text-white">1. Zero File Ingestion</p>
+              <p class="text-neutral-400">Your media files never touch our backend server. All Google Drive content renders through Google's sandbox <code class="text-cyan-400 font-mono">/preview</code> player.</p>
             </div>
 
             <div class="p-3 bg-neutral-950 border border-neutral-800/80 rounded-2xl space-y-1">
-              <p class="font-bold text-white">2. Strict Data Minimization</p>
-              <p class="text-neutral-400">We only store your account identifier, custom namespace, and the public Drive URLs you submit.</p>
+              <p class="font-bold text-white">2. Scoped Ownership</p>
+              <p class="text-neutral-400">All saved resources are bound to your account namespace (<code class="text-cyan-400 font-mono">/v1/me/resources</code>) via bearer tokens.</p>
             </div>
 
             <div class="p-3 bg-neutral-950 border border-neutral-800/80 rounded-2xl space-y-1">
-              <p class="font-bold text-white">3. Zero Tracking</p>
-              <p class="text-neutral-400">No telemetry cookies, ad pixels, or third-party trackers. All access is signed via owner-scoped JWTs.</p>
+              <p class="font-bold text-white">3. Zero Telemetry Tracking</p>
+              <p class="text-neutral-400">No ad pixels or tracking cookies. All requests pass through m-stash gateway proxies.</p>
             </div>
 
             <button 
               @click="privacyModalOpen = false; acceptedPrivacy = true"
               class="w-full mt-2 py-2.5 bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold rounded-xl transition"
             >
-              Got it
+              Understand &amp; Accept
             </button>
           </div>
         </div>
       </div>
     </transition>
 
-    <!-- Add Item Modal -->
+    <!-- Add Item / Resource Modal -->
     <transition name="fade">
       <div v-if="addModalOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl relative">
@@ -629,49 +709,49 @@
               <svg class="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z" />
               </svg>
-              <span>Add Drive Item to Reel</span>
+              <span>Add Item to Reel</span>
             </h2>
             <button @click="addModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
           </div>
           <p class="text-xs text-neutral-400 mb-4">
-            Saves directly into MongoDB via the Go DLAC proxy at <code class="text-cyan-300 font-mono">/v1/db/stashes/insertOne</code>.
+            Saves cleanly via <code class="text-cyan-300 font-mono">POST /v1/me/resources/reel</code> (or updates via <code class="text-cyan-300 font-mono">PUT</code> on conflict).
           </p>
 
-          <form @submit.prevent="handleSaveStash" class="space-y-3.5">
+          <form @submit.prevent="handleSaveResource" class="space-y-3.5">
             <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Target Namespace</label>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Target Slug / Route</label>
               <input 
                 type="text" 
                 required 
-                placeholder="e.g. creative-director"
-                v-model="newNamespace"
+                placeholder="main"
+                v-model="newSlug"
                 class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-sm text-white focus:border-cyan-400 outline-none font-mono"
               >
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Portfolio Title</label>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Reel Showcase Title</label>
               <input 
                 type="text" 
-                placeholder="e.g. 2026 Commercial Reel"
+                placeholder="e.g. Commercial Media Reel"
                 v-model="newTitle"
                 class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-sm text-white focus:border-cyan-400 outline-none"
               >
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Item Title</label>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Item Slide Title</label>
               <input 
                 type="text" 
                 required 
-                placeholder="e.g. 4K Drone Footage Reel"
+                placeholder="e.g. Keynote Presentation Deck"
                 v-model="newItemTitle"
                 class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-sm text-white focus:border-cyan-400 outline-none"
               >
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Google Drive Sharing Link</label>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Google Drive Share Link</label>
               <input 
                 type="url" 
                 required 
@@ -680,7 +760,7 @@
                 class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 outline-none font-mono"
               >
               <p class="text-[10px] text-neutral-500 mt-1">
-                Standard sharing URLs are automatically rewritten into high-speed <code class="text-neutral-400 font-mono">/preview</code> sandbox embeds.
+                Standard Drive view links are automatically reformatted to stream cleanly inside high-speed <code class="text-neutral-400 font-mono">/preview</code> sandboxes.
               </p>
             </div>
 
@@ -691,7 +771,7 @@
                   v-model="isPublic"
                   class="rounded bg-neutral-950 border-neutral-800 text-cyan-400 focus:ring-0"
                 >
-                <span>Make reel publicly discoverable on the Go Proxy API</span>
+                <span>Make resource publicly visible via <code class="text-cyan-400 font-mono">/v1/shared/resources</code></span>
               </label>
             </div>
 
@@ -713,7 +793,7 @@
                 class="px-5 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
               >
                 <span v-if="saveLoading" class="animate-spin w-3 h-3 border-2 border-black border-t-transparent rounded-full"></span>
-                <span>Save to MongoDB</span>
+                <span>Save Resource</span>
               </button>
             </div>
           </form>
@@ -721,16 +801,16 @@
       </div>
     </transition>
 
-    <!-- Diagnostics & Server Endpoint Modal -->
+    <!-- Gateway Diagnostics & Log Inspector Modal -->
     <transition name="fade">
       <div v-if="endpointModalOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="glass-panel border border-neutral-800 rounded-3xl p-6 max-w-md w-full shadow-2xl relative">
+        <div class="glass-panel border border-neutral-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl relative">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-base font-bold text-white flex items-center gap-2">
               <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
               </svg>
-              Go DLAC Gateway Diagnostics
+              m-stash Gateway Diagnostics
             </h2>
             <button @click="endpointModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
           </div>
@@ -740,27 +820,24 @@
               <div class="flex items-center justify-between">
                 <span class="text-neutral-400">Server Status:</span>
                 <span v-if="apiStatus === 'online'" class="text-emerald-400 font-bold flex items-center gap-1">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Live &amp; Healthy
+                  <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Live Gateway
                 </span>
                 <span v-else class="text-amber-400 font-bold flex items-center gap-1">
-                  <span class="w-2 h-2 rounded-full bg-amber-400"></span> Container Asleep (Render)
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span> Disconnected
                 </span>
               </div>
-              <p class="text-neutral-500 text-[11px]">
-                Free-tier cloud containers hibernate after 15 minutes of idle time. The wake button signals the engine to spin up.
-              </p>
               <button 
-                @click="wakeUpServer" 
+                @click="checkBackend" 
                 :disabled="isPinging"
                 class="w-full py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-cyan-300 font-bold transition flex items-center justify-center gap-1.5"
               >
                 <span v-if="isPinging" class="animate-spin w-3 h-3 border border-cyan-400 border-t-transparent rounded-full"></span>
-                <span>{{ wakeCountdown > 0 ? `Waking Engine (${wakeCountdown}s remaining)...` : 'Send Wake-Up Ping' }}</span>
+                <span>Ping Health / Refresh Connection</span>
               </button>
             </div>
 
             <div>
-              <label class="block font-semibold text-neutral-300 mb-1">Target Gateway Endpoint</label>
+              <label class="block font-semibold text-neutral-300 mb-1">Target m-stash API Origin</label>
               <div class="flex gap-2">
                 <input 
                   type="text" 
@@ -774,31 +851,31 @@
             </div>
 
             <div class="flex gap-2 pt-1">
-              <button @click="apiUrlInput = 'https://m-stash.onrender.com'; updateApiUrl()" class="flex-1 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-[11px] text-neutral-300 font-mono transition">
-                Render Cloud
+              <button @click="apiUrlInput = location.origin; updateApiUrl()" class="flex-1 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-[11px] text-neutral-300 font-mono transition">
+                Same Origin (Default)
               </button>
               <button @click="apiUrlInput = 'http://localhost:4000'; updateApiUrl()" class="flex-1 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-[11px] text-neutral-300 font-mono transition">
                 Localhost :4000
               </button>
             </div>
 
-            <div class="pt-2 border-t border-neutral-800/80 text-[11px] text-neutral-400 space-y-1 font-mono">
-              <p class="text-neutral-500 uppercase text-[9px] tracking-wider font-bold">Engine Resources</p>
-              <div class="flex items-center justify-between">
-                <span>Go DLAC Backend:</span>
-                <a href="https://github.com/ranfysvalle02/m-stash" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">github: m-stash &rarr;</a>
+            <!-- Inspector Response Output Log -->
+            <div class="pt-2 border-t border-neutral-800/80">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-bold text-white">API Response Trace Log</span>
+                <div class="flex items-center gap-2">
+                  <button @click="verifySession" class="text-cyan-400 hover:underline font-mono text-[10px]">Verify Token</button>
+                  <button @click="responseLog = 'Ready.'" class="text-neutral-500 hover:text-white font-mono text-[10px]">Clear</button>
+                </div>
               </div>
-              <div class="flex items-center justify-between">
-                <span>Docker Container:</span>
-                <a href="https://hub.docker.com/repository/docker/oblivio/m-stash/general" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">oblivio/m-stash &rarr;</a>
-              </div>
+              <pre class="w-full bg-black/90 p-3 rounded-xl font-mono text-[11px] text-cyan-300 border border-neutral-800 max-h-40 overflow-y-auto leading-relaxed whitespace-pre-wrap">{{ responseLog }}</pre>
             </div>
           </div>
         </div>
       </div>
     </transition>
 
-    <!-- "What is m-stash & Why it Matters" Modal -->
+    <!-- "What is m-stash" Educational Modal -->
     <transition name="fade">
       <div v-if="mStashModalOpen" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
@@ -817,7 +894,7 @@
                     Go DLAC Gateway
                   </span>
                 </div>
-                <p class="text-xs text-neutral-400">Zero-boilerplate security proxy for MongoDB Atlas</p>
+                <p class="text-xs text-neutral-400">Zero-boilerplate browser integration &amp; security gateway</p>
               </div>
             </div>
             <button @click="mStashModalOpen = false" class="text-neutral-500 hover:text-white transition text-2xl leading-none">&times;</button>
@@ -825,103 +902,47 @@
 
           <div class="space-y-4 text-xs">
             
-            <!-- What is it -->
             <div class="p-4 bg-neutral-950 border border-neutral-800 rounded-2xl space-y-2">
               <h3 class="font-bold text-white text-sm flex items-center gap-1.5 text-cyan-300">
                 <span>1. What is m-stash?</span>
               </h3>
               <p class="text-neutral-300 leading-relaxed">
-                <strong>m-stash</strong> is a high-speed, minimal Go security gateway proxy that sits between your client-side frontend (React, Vue, mobile, or vanilla JS) and MongoDB. It intercepts client requests, parses incoming JWTs, automatically injects owner-level access rules, and executes queries securely without exposing your database credentials.
+                <strong>m-stash</strong> is a lightweight Go security gateway that bridges web browsers and database persistence. It authenticates users, resolves permanent personal namespace routes, and enforces strict Document-Level Access Control (DLAC) without revealing connection strings or owner identifiers.
               </p>
             </div>
 
-            <!-- Why it matters -->
             <div class="p-4 bg-neutral-950 border border-neutral-800 rounded-2xl space-y-2">
               <h3 class="font-bold text-white text-sm flex items-center gap-1.5 text-cyan-300">
-                <span>2. Why does it matter? (The 2025 Problem)</span>
+                <span>2. Key Browser Endpoints</span>
               </h3>
-              <p class="text-neutral-300 leading-relaxed">
-                In late 2025, MongoDB shut down App Services (Realm) and the Atlas Data API. Suddenly, frontend developers could no longer build direct serverless/JAMstack applications without coding, dockerizing, and maintaining massive Node/Express backends.
-              </p>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
-                <div class="p-2.5 rounded-xl bg-rose-950/20 border border-rose-900/40 text-rose-300">
-                  <div class="font-bold text-rose-400 mb-0.5">Typical Node/TS Gateway</div>
-                  <div>&bull; 150MB+ Docker footprint</div>
-                  <div>&bull; node_modules hell</div>
-                  <div>&bull; 100-200MB idle RAM usage</div>
-                </div>
-                <div class="p-2.5 rounded-xl bg-emerald-950/20 border border-emerald-900/40 text-emerald-300">
-                  <div class="font-bold text-emerald-400 mb-0.5">m-stash (Go Engine)</div>
-                  <div>&bull; ~15MB scratch container</div>
-                  <div>&bull; Zero dependencies</div>
-                  <div>&bull; ~15MB idle RAM on free tier</div>
-                </div>
+              <div class="bg-black/90 p-3 rounded-xl font-mono text-[11px] text-cyan-300 border border-neutral-800 space-y-1.5">
+                <div><span class="text-emerald-400">POST</span> /v1/auth/signup <span class="text-neutral-500">{ email, password, username }</span></div>
+                <div><span class="text-emerald-400">POST</span> /v1/auth/login <span class="text-neutral-500">{ email, password }</span></div>
+                <div><span class="text-blue-400">GET</span>  /v1/me/namespace <span class="text-neutral-500">Resolves /user-slug</span></div>
+                <div><span class="text-amber-400">POST</span> /v1/me/resources/{type} <span class="text-neutral-500">Save private resource</span></div>
+                <div><span class="text-amber-400">PUT</span>  /v1/me/resources/{type}/{slug} <span class="text-neutral-500">Update resource</span></div>
+                <div><span class="text-blue-400">GET</span>  /v1/shared/resources/{type} <span class="text-neutral-500">Read shared records</span></div>
               </div>
             </div>
 
-            <!-- DLAC Rules -->
             <div class="p-4 bg-neutral-950 border border-neutral-800 rounded-2xl space-y-2">
               <h3 class="font-bold text-white text-sm flex items-center gap-1.5 text-cyan-300">
-                <span>3. Declarative Access Control (DLAC)</span>
+                <span>3. Username Namespace Rules</span>
               </h3>
               <p class="text-neutral-300 leading-relaxed">
-                Never trust client-supplied filters. <code class="text-cyan-300 font-mono">m-stash</code> inspects the token's authenticated <code class="text-neutral-200 font-mono">claims.UID</code> and automatically merges security policies using strict MongoDB <code class="text-neutral-200 font-mono">$and</code> clauses:
+                Usernames dictate your permanent personal route (<code class="text-cyan-300 font-mono">/slug</code>). Rules: 3-32 lowercase characters or numbers with single <code class="text-neutral-200 font-mono">-</code> or <code class="text-neutral-200 font-mono">_</code> separators.
               </p>
-              <div class="bg-black/90 p-3 rounded-xl font-mono text-[11px] text-cyan-300 border border-neutral-800 overflow-x-auto">
-                <div>// Owner-scoped policy executed natively in Go:</div>
-                <div class="text-neutral-400">"portfolios": {</div>
-                <div class="text-neutral-200 pl-3">"read":  {"$or": [{"ownerId": "$auth.uid"}, {"isPublic": true}]},</div>
-                <div class="text-neutral-200 pl-3">"write": {"ownerId": "$auth.uid"}</div>
-                <div class="text-neutral-400">}</div>
-              </div>
             </div>
 
-            <!-- Get Started / Run it -->
             <div class="p-4 bg-cyan-950/30 border border-cyan-800/50 rounded-2xl space-y-2.5">
-              <div class="flex items-center justify-between">
-                <h3 class="font-bold text-white text-sm flex items-center gap-1.5 text-cyan-200">
-                  <span>4. Run it in 30 Seconds</span>
-                </h3>
-                <span class="text-[10px] text-cyan-400 font-mono">Docker Hub / GitHub</span>
-              </div>
+              <h3 class="font-bold text-white text-sm text-cyan-200">
+                4. Docker Hub Image
+              </h3>
               <p class="text-neutral-300 text-xs">
-                Pull and spin up the production container immediately with your own MongoDB Atlas connection string:
+                Spin up a production container with zero dependencies:
               </p>
-              
-              <div class="relative bg-black/90 p-3 rounded-xl font-mono text-[11px] text-emerald-400 border border-neutral-800 group">
+              <div class="relative bg-black/90 p-3 rounded-xl font-mono text-[11px] text-emerald-400 border border-neutral-800">
                 <code>docker run -d -p 4000:4000 -e MONGO_URI="mongodb+srv://..." oblivio/m-stash</code>
-                <button 
-                  @click="copyDockerCmd" 
-                  class="absolute right-2 top-2 px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[10px] rounded font-sans transition"
-                >
-                  {{ copiedDocker ? 'Copied!' : 'Copy' }}
-                </button>
-              </div>
-
-              <div class="flex flex-wrap items-center gap-3 pt-1">
-                <a 
-                  href="https://github.com/ranfysvalle02/m-stash" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  class="flex-1 py-2 px-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold text-center transition flex items-center justify-center gap-1.5"
-                >
-                  <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-                  </svg>
-                  <span>Star on GitHub</span>
-                </a>
-                
-                <a 
-                  href="https://hub.docker.com/repository/docker/oblivio/m-stash/general" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  class="flex-1 py-2 px-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-center transition flex items-center justify-center gap-1.5"
-                >
-                  <svg class="w-4 h-4 fill-current text-blue-400" viewBox="0 0 24 24">
-                    <path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.186.185.186zm0 2.715h2.118a.186.186 0 00.186-.186V6.29a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.186v1.887c0 .102.082.186.185.186zm-2.954 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.186H8.075a.185.185 0 00-.185.186v1.887c0 .102.083.186.185.186zm-2.954 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.186H5.12a.185.185 0 00-.185.186v1.887c0 .102.083.186.185.186z"/>
-                  </svg>
-                  <span>Docker Hub Image</span>
-                </a>
               </div>
             </div>
 
@@ -930,6 +951,7 @@
       </div>
     </transition>
 
+    <!-- App Footer -->
     <footer class="border-t border-neutral-900 bg-neutral-950/80 py-4 px-4 text-xs text-neutral-500 relative z-10 mt-auto">
       <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
         <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
@@ -937,19 +959,13 @@
           <span class="font-bold text-neutral-300">mdb-overdrive</span>
           <span>&bull;</span>
           <button @click="mStashModalOpen = true" class="text-cyan-400 hover:text-cyan-300 underline font-mono">
-            Powered by m-stash
+            m-stash browser integration
           </button>
         </div>
         <div class="flex items-center gap-4 font-mono text-[11px] text-neutral-400 flex-wrap justify-center sm:justify-end">
           <button @click="mStashModalOpen = true" class="hover:text-cyan-400 transition underline">
-            What is m-stash?
+            Architecture
           </button>
-          <a href="https://github.com/ranfysvalle02/m-stash" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition underline">
-            m-stash Repo
-          </a>
-          <a href="https://hub.docker.com/repository/docker/oblivio/m-stash/general" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition underline">
-            Docker Hub
-          </a>
           <button @click="privacyModalOpen = true" class="hover:text-cyan-400 transition underline">
             Privacy Policy
           </button>
@@ -960,7 +976,7 @@
   </div>
 
   <script>
-  // Converts standard Google Drive sharing links into Google's official /preview iframe embed URL
+  // Utility: Convert standard Google Drive URL into high-speed /preview iframe embed URL
   function formatDrivePreviewUrl(url) {
     if (!url) return '';
     if (url.includes('/preview')) return url;
@@ -979,15 +995,13 @@
     return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
   }
 
-  // Cross-browser robust clipboard helper
+  // Utility: Cross-browser clipboard copy
   async function copyTextToClipboard(text) {
     if (navigator.clipboard && window.isSecureContext) {
       try {
         await navigator.clipboard.writeText(text);
         return true;
-      } catch (err) {
-        // Fallback below
-      }
+      } catch (err) {}
     }
     const temp = document.createElement('textarea');
     temp.value = text;
@@ -1005,59 +1019,80 @@
     return success;
   }
 
+  // Username validation pattern: 3-32 lowercase chars or numbers, single - or _ separators
+  const usernamePattern = /^[a-z0-9](?:[a-z0-9]|[-_](?=[a-z0-9])){2,31}$/;
+
+  function getUsernameIssue(value) {
+    if (!value) return "3-32 lowercase letters or numbers, with single - or _ separators.";
+    if (value.length < 3 || value.length > 32) return "Must be 3 to 32 characters long.";
+    if (!/^[a-z0-9]/.test(value) || !/[a-z0-9]$/.test(value)) return "Start and end with a lowercase letter or number.";
+    if (/[-_][-_]/.test(value)) return "Use one hyphen or underscore between parts.";
+    if (!usernamePattern.test(value)) return "Use lowercase letters, numbers, hyphens, or underscores only.";
+    return "";
+  }
+
   const { createApp, ref, computed, onMounted } = Vue;
 
   createApp({
     setup() {
-      const apiUrl = ref(localStorage.getItem('overdrive_api_url') || 'https://m-stash.onrender.com');
+      // Configuration & API Endpoints
+      const apiUrl = ref(localStorage.getItem('overdrive_api_url') || location.origin);
       const apiUrlInput = ref(apiUrl.value);
+      
+      // Modals
       const endpointModalOpen = ref(false);
       const privacyModalOpen = ref(false);
       const mStashModalOpen = ref(false);
       const shareModalOpen = ref(false);
-      const acceptedPrivacy = ref(true);
-      const lastError = ref('');
-      const isPinging = ref(false);
-      const wakeCountdown = ref(0);
-      const copiedDocker = ref(false);
-      const copiedShare = ref(false);
-      const copiedEmbed = ref(false);
-      let pollTimer = null;
-
-      const token = ref(localStorage.getItem('overdrive_token') || '');
-      let initialUser = null;
-      try {
-        const storedUser = localStorage.getItem('overdrive_user');
-        if (storedUser) initialUser = JSON.parse(storedUser);
-      } catch (e) {
-        localStorage.removeItem('overdrive_user');
-      }
-      const user = ref(initialUser);
-
+      const addModalOpen = ref(false);
       const authModalOpen = ref(false);
+
+      // Auth & Identity State
+      const token = ref(localStorage.getItem('overdrive_token') || '');
+      let storedUser = null;
+      let storedNamespace = null;
+      try {
+        const u = localStorage.getItem('overdrive_user');
+        if (u) storedUser = JSON.parse(u);
+        const ns = localStorage.getItem('overdrive_namespace');
+        if (ns) storedNamespace = JSON.parse(ns);
+      } catch (e) {}
+
+      const user = ref(storedUser);
+      const userNamespace = ref(storedNamespace);
+      const acceptedPrivacy = ref(true);
+
       const authMode = ref('signup');
       const emailInput = ref('');
       const passwordInput = ref('');
+      const usernameInput = ref('');
+      const usernameHelpText = ref(getUsernameIssue(''));
+      const usernameHelpIssue = ref(true);
       const authError = ref('');
       const authLoading = ref(false);
 
-      // Routing & Namespace states
-      const hasHash = ref(!!window.location.hash.replace('#', ''));
-      const namespace = ref(window.location.hash.replace('#', '') || 'demo');
-      const isLandingDefault = ref(!hasHash.value && !user.value);
+      // Workspace & Reel State
+      const routeHash = ref(window.location.hash.replace('#', ''));
+      const isLandingDefault = ref(!routeHash.value && !user.value);
       const portfolioTitle = ref('Reel Showcase');
       const items = ref([]);
       const currentIndex = ref(0);
       const apiStatus = ref('checking');
+      const responseLog = ref('Ready.');
 
-      const addModalOpen = ref(false);
-      const newNamespace = ref('');
+      // Add Resource Form
+      const newSlug = ref('main');
       const newTitle = ref('');
       const newItemTitle = ref('');
       const newUrl = ref('');
       const isPublic = ref(true);
       const saveLoading = ref(false);
       const saveError = ref('');
+
+      // Copy Indicators
+      const copiedShare = ref(false);
+      const copiedEmbed = ref(false);
+      const isPinging = ref(false);
 
       const cleanApiHostname = computed(() => {
         try {
@@ -1067,6 +1102,16 @@
         }
       });
 
+      const activeNamespaceSlug = computed(() => {
+        if (routeHash.value) return routeHash.value;
+        if (userNamespace.value && userNamespace.value.slug) return userNamespace.value.slug;
+        return 'demo';
+      });
+
+      const isNamespacePublic = computed(() => {
+        return userNamespace.value ? !!userNamespace.value.isPublic : true;
+      });
+
       const safeItems = computed(() => Array.isArray(items.value) ? items.value : []);
       const totalItems = computed(() => safeItems.value.length);
       const currentItem = computed(() => {
@@ -1074,15 +1119,14 @@
         return safeItems.value[currentIndex.value] || null;
       });
 
-      // Share Computed URLs
+      // Computed Share Links
       const shareUrl = computed(() => {
         const base = window.location.origin + window.location.pathname;
-        const target = namespace.value || 'demo';
-        return `${base}#${target}`;
+        return `${base}#${activeNamespaceSlug.value}`;
       });
 
       const twitterShareUrl = computed(() => {
-        const text = encodeURIComponent(`Check out my cloud reel showcase #${namespace.value}:`);
+        const text = encodeURIComponent(`Check out my cloud reel /${activeNamespaceSlug.value}:`);
         return `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(shareUrl.value)}`;
       });
 
@@ -1096,14 +1140,336 @@
       });
 
       const emailShareUrl = computed(() => {
-        const subject = encodeURIComponent(`Cloud Reel Showcase - #${namespace.value}`);
-        const body = encodeURIComponent(`Check out my interactive cloud reel showcase here:\n\n${shareUrl.value}`);
+        const subject = encodeURIComponent(`Cloud Reel Showcase - /${activeNamespaceSlug.value}`);
+        const body = encodeURIComponent(`Check out my interactive cloud reel showcase:\n\n${shareUrl.value}`);
         return `mailto:?subject=${subject}&body=${body}`;
       });
 
       const qrCodeUrl = computed(() => {
         return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareUrl.value)}`;
       });
+
+      // Response Logger Helper
+      const logResponse = (label, data) => {
+        const redactData = JSON.parse(JSON.stringify(data, (key, val) => 
+          (key === 'token' || key === 'password') ? '[redacted]' : val
+        ));
+        responseLog.value = `[${new Date().toLocaleTimeString()}] ${label}\n${JSON.stringify(redactData, null, 2)}`;
+      };
+
+      // API Request Helper
+      const apiRequest = async (path, { method = 'GET', body, authenticated = true } = {}) => {
+        const headers = new Headers({ 'Accept': 'application/json' });
+        if (body !== undefined) headers.set('Content-Type', 'application/json');
+        if (authenticated && token.value) headers.set('Authorization', `Bearer ${token.value}`);
+
+        const response = await fetch(`${apiUrl.value}${path}`, {
+          method,
+          headers,
+          body: body === undefined ? undefined : JSON.stringify(body)
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        logResponse(`${method} ${path} -> ${response.status}`, payload);
+
+        if (!response.ok) {
+          const err = new Error(payload.error || payload.message || `Request failed with ${response.status}`);
+          err.status = response.status;
+          throw err;
+        }
+        return payload;
+      };
+
+      // Backend Health Ping
+      const checkBackend = async () => {
+        isPinging.value = true;
+        try {
+          await apiRequest('/v1/shared/resources/reel?limit=1', { authenticated: false });
+          apiStatus.value = 'online';
+        } catch (e) {
+          try {
+            await apiRequest('/v1/auth/verify', { method: 'GET' });
+            apiStatus.value = 'online';
+          } catch (e2) {
+            apiStatus.value = 'offline';
+          }
+        } finally {
+          isPinging.value = false;
+        }
+      };
+
+      const updateApiUrl = () => {
+        let clean = apiUrlInput.value.trim().replace(/\/+$/, '');
+        if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+          clean = 'https://' + clean;
+        }
+        apiUrl.value = clean;
+        localStorage.setItem('overdrive_api_url', clean);
+        checkBackend();
+        endpointModalOpen.value = false;
+      };
+
+      // Validate Username on Signup
+      const validateUsername = () => {
+        usernameInput.value = usernameInput.value.trim().toLowerCase();
+        const issue = getUsernameIssue(usernameInput.value);
+        if (issue) {
+          usernameHelpText.value = issue;
+          usernameHelpIssue.value = true;
+        } else {
+          usernameHelpText.value = `Permanent route: /${usernameInput.value}`;
+          usernameHelpIssue.value = false;
+        }
+      };
+
+      // Load Namespace from API
+      const fetchNamespace = async () => {
+        if (!token.value) return;
+        try {
+          const res = await apiRequest('/v1/me/namespace');
+          if (res.data) {
+            userNamespace.value = res.data;
+            localStorage.setItem('overdrive_namespace', JSON.stringify(res.data));
+          }
+        } catch (err) {
+          console.warn('Could not fetch personal namespace:', err);
+        }
+      };
+
+      // Load Reel Resources
+      const loadReelData = async (slugTarget) => {
+        const target = slugTarget || activeNamespaceSlug.value;
+        try {
+          // Attempt 1: Fetch user's own resources if authenticated
+          if (token.value) {
+            try {
+              const myRes = await apiRequest('/v1/me/resources/reel');
+              const list = myRes.data || myRes;
+              if (Array.isArray(list) && list.length > 0) {
+                const match = list.find(r => r.slug === 'main' || r.slug === target) || list[0];
+                parseAndApplyResource(match);
+                return;
+              }
+            } catch (e) {}
+          }
+
+          // Attempt 2: Fetch shared resources
+          const sharedRes = await apiRequest(`/v1/shared/resources/reel?limit=20`, { authenticated: false });
+          const list = sharedRes.data || [];
+          if (Array.isArray(list) && list.length > 0) {
+            const match = list.find(r => r.slug === target || r.title.toLowerCase().includes(target)) || list[0];
+            parseAndApplyResource(match);
+            return;
+          }
+        } catch (err) {
+          console.warn('Reel data fetch fallback:', err);
+        }
+      };
+
+      const parseAndApplyResource = (resource) => {
+        if (!resource) return;
+        isLandingDefault.value = false;
+        portfolioTitle.value = resource.title || 'Reel Showcase';
+
+        let parsedItems = [];
+        if (resource.content) {
+          if (typeof resource.content === 'string') {
+            try {
+              const p = JSON.parse(resource.content);
+              if (Array.isArray(p)) parsedItems = p;
+              else if (p && Array.isArray(p.items)) parsedItems = p.items;
+            } catch (e) {}
+          } else if (typeof resource.content === 'object') {
+            if (Array.isArray(resource.content)) parsedItems = resource.content;
+            else if (Array.isArray(resource.content.items)) parsedItems = resource.content.items;
+          }
+        }
+
+        if (parsedItems.length > 0) {
+          items.value = parsedItems;
+          currentIndex.value = 0;
+        }
+      };
+
+      const loadSharedData = async () => {
+        try {
+          const res = await apiRequest('/v1/shared/resources/reel?limit=20', { authenticated: !!token.value });
+          if (res.data && res.data.length > 0) {
+            parseAndApplyResource(res.data[0]);
+          }
+        } catch (e) {
+          console.warn('Shared data fetch error:', e);
+        }
+      };
+
+      // Auth Handlers (Signup / Login)
+      const handleAuthSubmit = async () => {
+        authLoading.value = true;
+        authError.value = '';
+
+        try {
+          if (authMode.value === 'signup') {
+            const issue = getUsernameIssue(usernameInput.value);
+            if (issue) throw new Error(issue);
+
+            const payload = await apiRequest('/v1/auth/signup', {
+              method: 'POST',
+              authenticated: false,
+              body: {
+                email: emailInput.value,
+                password: passwordInput.value,
+                username: usernameInput.value
+              }
+            });
+
+            adoptSession(payload);
+          } else {
+            const payload = await apiRequest('/v1/auth/login', {
+              method: 'POST',
+              authenticated: false,
+              body: {
+                email: emailInput.value,
+                password: passwordInput.value
+              }
+            });
+
+            adoptSession(payload);
+          }
+
+          authModalOpen.value = false;
+          isLandingDefault.value = false;
+          emailInput.value = '';
+          passwordInput.value = '';
+        } catch (err) {
+          authError.value = err.message || 'Authentication failed.';
+        } finally {
+          authLoading.value = false;
+        }
+      };
+
+      const adoptSession = (payload) => {
+        token.value = payload.token;
+        user.value = payload.user || { email: emailInput.value, role: 'user' };
+        userNamespace.value = payload.namespace || null;
+
+        localStorage.setItem('overdrive_token', payload.token);
+        localStorage.setItem('overdrive_user', JSON.stringify(user.value));
+        if (payload.namespace) {
+          localStorage.setItem('overdrive_namespace', JSON.stringify(payload.namespace));
+        }
+
+        fetchNamespace();
+        loadReelData();
+      };
+
+      const verifySession = async () => {
+        try {
+          const payload = await apiRequest('/v1/auth/verify');
+          if (payload.claims) {
+            user.value = { ...user.value, ...payload.claims };
+            localStorage.setItem('overdrive_user', JSON.stringify(user.value));
+          }
+        } catch (err) {
+          console.warn('Verify session error:', err);
+        }
+      };
+
+      const logout = () => {
+        token.value = '';
+        user.value = null;
+        userNamespace.value = null;
+        localStorage.removeItem('overdrive_token');
+        localStorage.removeItem('overdrive_user');
+        localStorage.removeItem('overdrive_namespace');
+        if (!window.location.hash) {
+          isLandingDefault.value = true;
+        }
+      };
+
+      const openAddModal = () => {
+        if (!token.value) {
+          authModalOpen.value = true;
+        } else {
+          newSlug.value = 'main';
+          newTitle.value = portfolioTitle.value !== 'Reel Showcase' ? portfolioTitle.value : '';
+          addModalOpen.value = true;
+        }
+      };
+
+      // Save Resource Handler (POST /v1/me/resources/reel -> PUT on 409)
+      const handleSaveResource = async () => {
+        saveLoading.value = true;
+        saveError.value = '';
+
+        const formattedUrl = formatDrivePreviewUrl(newUrl.value);
+        const slug = (newSlug.value || 'main').trim().toLowerCase().replace(/\s+/g, '-');
+
+        const newItem = {
+          title: newItemTitle.value || 'Drive Resource',
+          url: formattedUrl,
+          type: 'drive',
+          summary: `Added to /${activeNamespaceSlug.value}/reel/${slug}`
+        };
+
+        const currentList = Array.isArray(items.value) ? items.value : [];
+        const updatedItems = [...currentList, newItem];
+
+        const resourcePayload = {
+          slug,
+          title: newTitle.value || `Reel Showcase /${slug}`,
+          summary: `mdb-overdrive showcase deck for /${activeNamespaceSlug.value}`,
+          content: JSON.stringify({ items: updatedItems }),
+          visibility: isPublic.value ? 'public' : 'private'
+        };
+
+        try {
+          // Attempt POST create
+          try {
+            await apiRequest('/v1/me/resources/reel', {
+              method: 'POST',
+              body: resourcePayload
+            });
+          } catch (err) {
+            if (err.status === 409) {
+              // Resource exists; update via PUT
+              await apiRequest(`/v1/me/resources/reel/${encodeURIComponent(slug)}`, {
+                method: 'PUT',
+                body: {
+                  title: resourcePayload.title,
+                  summary: resourcePayload.summary,
+                  content: resourcePayload.content,
+                  visibility: resourcePayload.visibility
+                }
+              });
+            } else {
+              throw err;
+            }
+          }
+
+          items.value = updatedItems;
+          portfolioTitle.value = resourcePayload.title;
+          currentIndex.value = updatedItems.length - 1;
+
+          addModalOpen.value = false;
+          newUrl.value = '';
+          newItemTitle.value = '';
+        } catch (err) {
+          saveError.value = err.message || 'Error saving resource.';
+        } finally {
+          saveLoading.value = false;
+        }
+      };
+
+      // Slide Navigation
+      const nextSlide = () => {
+        if (totalItems.value === 0) return;
+        currentIndex.value = (currentIndex.value + 1) % totalItems.value;
+      };
+
+      const prevSlide = () => {
+        if (totalItems.value === 0) return;
+        currentIndex.value = (currentIndex.value - 1 + totalItems.value) % totalItems.value;
+      };
 
       const openShareModal = () => {
         shareModalOpen.value = true;
@@ -1129,75 +1495,13 @@
         }
       };
 
-      // Health checker
-      const checkBackend = async () => {
-        isPinging.value = true;
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-          let res = null;
-          try {
-            res = await fetch(`${apiUrl.value}/v1/public/stashes?limit=1`, { 
-              method: 'GET',
-              signal: controller.signal
-            });
-          } catch (e) {
-            res = await fetch(`${apiUrl.value}/healthz`, { 
-              method: 'GET', 
-              signal: controller.signal 
-            }).catch(() => null);
-          }
-
-          clearTimeout(timeoutId);
-
-          if (res && (res.ok || res.status === 200 || res.status === 304)) {
-            apiStatus.value = 'online';
-            wakeCountdown.value = 0;
-            if (pollTimer) clearInterval(pollTimer);
-          } else {
-            apiStatus.value = 'offline';
-          }
-        } catch (err) {
-          apiStatus.value = 'offline';
-        } finally {
-          isPinging.value = false;
-        }
-      };
-
-      const wakeUpServer = async () => {
-        apiStatus.value = 'checking';
-        wakeCountdown.value = 45;
-        await checkBackend();
-
-        if (pollTimer) clearInterval(pollTimer);
-        pollTimer = setInterval(async () => {
-          if (wakeCountdown.value > 0) wakeCountdown.value -= 5;
-          await checkBackend();
-          if (apiStatus.value === 'online' || wakeCountdown.value <= 0) {
-            clearInterval(pollTimer);
-          }
-        }, 5000);
-      };
-
-      const updateApiUrl = () => {
-        let clean = apiUrlInput.value.trim().replace(/\/+$/, '');
-        if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
-          clean = 'https://' + clean;
-        }
-        apiUrl.value = clean;
-        localStorage.setItem('overdrive_api_url', clean);
-        checkBackend();
-        loadPortfolio(namespace.value);
-        endpointModalOpen.value = false;
-      };
-
       const loadSampleReel = () => {
         isLandingDefault.value = false;
         portfolioTitle.value = 'Sample Overdrive Reel';
         items.value = [
           {
             title: "Welcome to mdb-overdrive",
+            summary: "Integrated with m-stash browser identity & resource routing.",
             url: "",
             type: "card"
           }
@@ -1207,245 +1511,13 @@
 
       const resetToHome = () => {
         window.location.hash = '';
-        hasHash.value = false;
+        routeHash.value = '';
         if (!user.value) {
           isLandingDefault.value = true;
         }
       };
 
-      // Query Portfolio from Go DLAC backend
-      const loadPortfolio = async (targetNs) => {
-        if (!targetNs || targetNs === 'demo') {
-          if (!user.value && !hasHash.value) {
-            isLandingDefault.value = true;
-            return;
-          }
-        }
-
-        try {
-          let matchedStash = null;
-
-          if (token.value) {
-            const res = await fetch(`${apiUrl.value}/v1/db/stashes/find`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token.value}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                query: {},
-                limit: 50
-              })
-            });
-            if (res.ok) {
-              const data = await res.json();
-              const list = data.data || [];
-              if (Array.isArray(list) && list.length > 0) {
-                matchedStash = list.slice().reverse().find(s => 
-                  (s.tags && s.tags.includes(targetNs)) || 
-                  (s.summary && s.summary.includes(targetNs)) || 
-                  s.namespace === targetNs
-                ) || list[list.length - 1];
-              }
-            }
-          }
-
-          if (!matchedStash) {
-            const pubRes = await fetch(`${apiUrl.value}/v1/public/stashes?limit=50&tag=${encodeURIComponent(targetNs)}`);
-            if (pubRes.ok) {
-              const pubData = await pubRes.json();
-              const list = pubData.data || pubData;
-              if (Array.isArray(list) && list.length > 0) {
-                matchedStash = list[list.length - 1];
-              }
-            }
-          }
-
-          if (!matchedStash) {
-            const pubResAll = await fetch(`${apiUrl.value}/v1/public/stashes?limit=50`);
-            if (pubResAll.ok) {
-              const pubData = await pubResAll.json();
-              const list = pubData.data || pubData;
-              if (Array.isArray(list) && list.length > 0) {
-                matchedStash = list.slice().reverse().find(s => 
-                  (s.tags && s.tags.includes(targetNs)) || 
-                  (s.summary && s.summary.includes(targetNs)) || 
-                  s.namespace === targetNs
-                ) || list[list.length - 1];
-              }
-            }
-          }
-
-          if (matchedStash) {
-            isLandingDefault.value = false;
-            portfolioTitle.value = matchedStash.title || targetNs;
-            
-            let parsedItems = [];
-            if (matchedStash.content) {
-              if (typeof matchedStash.content === 'string') {
-                try {
-                  const p = JSON.parse(matchedStash.content);
-                  if (Array.isArray(p)) parsedItems = p;
-                  else if (p && Array.isArray(p.items)) parsedItems = p.items;
-                } catch(e) {}
-              } else if (typeof matchedStash.content === 'object') {
-                if (Array.isArray(matchedStash.content)) parsedItems = matchedStash.content;
-                else if (Array.isArray(matchedStash.content.items)) parsedItems = matchedStash.content.items;
-              }
-            }
-
-            if (!parsedItems.length && Array.isArray(matchedStash.items)) {
-              parsedItems = matchedStash.items;
-            }
-
-            if (parsedItems.length > 0) {
-              items.value = parsedItems;
-            }
-            currentIndex.value = 0;
-          }
-        } catch (err) {
-          console.warn('Portfolio load error:', err);
-        }
-      };
-
-      // Authentication Handler
-      const handleAuthSubmit = async () => {
-        authLoading.value = true;
-        authError.value = '';
-        const endpoint = authMode.value === 'signup' ? '/v1/auth/signup' : '/v1/auth/login';
-
-        try {
-          const res = await fetch(`${apiUrl.value}${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: emailInput.value,
-              password: passwordInput.value
-            })
-          });
-
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.message || data.error || 'Authentication error');
-          }
-
-          token.value = data.token;
-          user.value = data.user || { email: emailInput.value };
-          localStorage.setItem('overdrive_token', data.token);
-          localStorage.setItem('overdrive_user', JSON.stringify(user.value));
-
-          authModalOpen.value = false;
-          isLandingDefault.value = false;
-          emailInput.value = '';
-          passwordInput.value = '';
-          loadPortfolio(namespace.value);
-        } catch (err) {
-          authError.value = err.message;
-        } finally {
-          authLoading.value = false;
-        }
-      };
-
-      const logout = () => {
-        token.value = '';
-        user.value = null;
-        localStorage.removeItem('overdrive_token');
-        localStorage.removeItem('overdrive_user');
-        if (!window.location.hash) {
-          isLandingDefault.value = true;
-        }
-      };
-
-      const openAddModal = () => {
-        if (!token.value) {
-          authModalOpen.value = true;
-        } else {
-          newNamespace.value = namespace.value !== 'demo' ? namespace.value : '';
-          newTitle.value = portfolioTitle.value !== 'Reel Showcase' ? portfolioTitle.value : '';
-          addModalOpen.value = true;
-        }
-      };
-
-      // STRICT m-stash 'stashes' SCHEMA COMPLIANT SAVE HANDLER
-      // Allowed write schema for stashes: title, summary, content, tags, isPublic
-      // ownerId, createdAt, updatedAt are hydrated natively by m-stash gateway.
-      const handleSaveStash = async () => {
-        saveLoading.value = true;
-        saveError.value = '';
-
-        const formatted = formatDrivePreviewUrl(newUrl.value);
-        const targetNs = (newNamespace.value || namespace.value).trim().toLowerCase().replace(/\s+/g, '-');
-
-        const newItem = {
-          title: newItemTitle.value || 'Drive File',
-          url: formatted,
-          type: 'drive'
-        };
-
-        const currentList = Array.isArray(items.value) ? items.value : [];
-        const updatedItems = (targetNs === namespace.value) ? [...currentList, newItem] : [newItem];
-
-        const stashPayload = {
-          title: newTitle.value || targetNs,
-          summary: `mdb-overdrive showcase for #${targetNs}`,
-          content: JSON.stringify({ namespace: targetNs, items: updatedItems }),
-          tags: [targetNs],
-          isPublic: isPublic.value
-        };
-
-        try {
-          const res = await fetch(`${apiUrl.value}/v1/db/stashes/insertOne`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token.value}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ payload: stashPayload })
-          });
-
-          if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.message || errData.error || `Insert rejected by m-stash schema rule (${res.status})`);
-          }
-
-          window.location.hash = targetNs;
-          hasHash.value = true;
-          isLandingDefault.value = false;
-          namespace.value = targetNs;
-          portfolioTitle.value = stashPayload.title;
-          items.value = updatedItems;
-          currentIndex.value = updatedItems.length - 1;
-
-          addModalOpen.value = false;
-          newUrl.value = '';
-          newItemTitle.value = '';
-        } catch (err) {
-          saveError.value = err.message;
-        } finally {
-          saveLoading.value = false;
-        }
-      };
-
-      const nextSlide = () => {
-        if (totalItems.value === 0) return;
-        currentIndex.value = (currentIndex.value + 1) % totalItems.value;
-      };
-
-      const prevSlide = () => {
-        if (totalItems.value === 0) return;
-        currentIndex.value = (currentIndex.value - 1 + totalItems.value) % totalItems.value;
-      };
-
-      const copyDockerCmd = async () => {
-        const cmd = 'docker run -d -p 4000:4000 -e MONGO_URI="mongodb+srv://..." oblivio/m-stash';
-        const success = await copyTextToClipboard(cmd);
-        if (success) {
-          copiedDocker.value = true;
-          setTimeout(() => copiedDocker.value = false, 2000);
-        }
-      };
-
-      // Keyboard arrow shortcuts
+      // Keyboard Shortcuts
       const handleKeyDown = (e) => {
         if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
         if (e.key === 'ArrowRight') nextSlide();
@@ -1456,23 +1528,25 @@
         checkBackend();
         window.addEventListener('keydown', handleKeyDown);
 
-        const hashNs = window.location.hash.replace('#', '');
-        if (hashNs) {
-          hasHash.value = true;
-          namespace.value = hashNs;
-          loadPortfolio(hashNs);
+        if (token.value) {
+          verifySession();
+          fetchNamespace();
+        }
+
+        const hashVal = window.location.hash.replace('#', '');
+        if (hashVal) {
+          routeHash.value = hashVal;
+          loadReelData(hashVal);
         } else if (user.value) {
-          loadPortfolio(namespace.value);
+          loadReelData();
         }
 
         window.addEventListener('hashchange', () => {
-          const newNs = window.location.hash.replace('#', '');
-          if (newNs) {
-            hasHash.value = true;
-            namespace.value = newNs;
-            loadPortfolio(newNs);
+          const newHash = window.location.hash.replace('#', '');
+          routeHash.value = newHash;
+          if (newHash) {
+            loadReelData(newHash);
           } else {
-            hasHash.value = false;
             if (!user.value) isLandingDefault.value = true;
           }
         });
@@ -1486,23 +1560,23 @@
         privacyModalOpen,
         mStashModalOpen,
         shareModalOpen,
+        addModalOpen,
+        authModalOpen,
         acceptedPrivacy,
-        lastError,
-        isPinging,
-        wakeCountdown,
-        checkBackend,
-        wakeUpServer,
-        updateApiUrl,
         token,
         user,
-        authModalOpen,
+        userNamespace,
+        activeNamespaceSlug,
+        isNamespacePublic,
         authMode,
         emailInput,
         passwordInput,
+        usernameInput,
+        usernameHelpText,
+        usernameHelpIssue,
         authError,
         authLoading,
         isLandingDefault,
-        namespace,
         portfolioTitle,
         items,
         safeItems,
@@ -1510,34 +1584,38 @@
         currentIndex,
         currentItem,
         apiStatus,
-        copiedDocker,
-        copiedShare,
-        copiedEmbed,
-        addModalOpen,
-        newNamespace,
+        responseLog,
+        newSlug,
         newTitle,
         newItemTitle,
         newUrl,
         isPublic,
         saveLoading,
         saveError,
+        copiedShare,
+        copiedEmbed,
+        isPinging,
         shareUrl,
         twitterShareUrl,
         linkedinShareUrl,
         whatsappShareUrl,
         emailShareUrl,
         qrCodeUrl,
+        formatDrivePreviewUrl,
+        validateUsername,
+        checkBackend,
+        updateApiUrl,
+        handleAuthSubmit,
+        verifySession,
+        logout,
+        openAddModal,
+        handleSaveResource,
+        loadSharedData,
+        nextSlide,
+        prevSlide,
         openShareModal,
         copyShareLink,
         copyEmbedSnippet,
-        formatDrivePreviewUrl,
-        handleAuthSubmit,
-        logout,
-        openAddModal,
-        handleSaveStash,
-        nextSlide,
-        prevSlide,
-        copyDockerCmd,
         loadSampleReel,
         resetToHome
       };
