@@ -36,6 +36,24 @@
     .player-shell {
       box-shadow: 0 24px 80px -34px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.025), 0 0 48px -28px rgba(34, 211, 238, 0.55);
     }
+    .player-stage {
+      width: min(100%, calc((100vh - 13.5rem) * 1.7778));
+      aspect-ratio: 16 / 9;
+      margin-inline: auto;
+    }
+    @supports (height: 100dvh) {
+      .player-stage {
+        width: min(100%, calc((100dvh - 13.5rem) * 1.7778));
+      }
+    }
+    .player-stage:fullscreen {
+      width: 100vw;
+      height: 100vh;
+      max-width: none;
+      aspect-ratio: auto;
+      border: 0;
+      border-radius: 0;
+    }
     .media-sheen::after {
       content: '';
       position: absolute;
@@ -76,6 +94,17 @@
         transition-duration: 0.01ms !important;
       }
     }
+    @media (max-width: 640px) {
+      .player-stage {
+        width: 100%;
+        border-radius: 0.75rem;
+      }
+    }
+    @media (orientation: landscape) and (max-height: 700px) {
+      .player-stage {
+        width: min(100%, calc((100dvh - 10rem) * 1.7778));
+      }
+    }
   </style>
 </head>
 <body class="bg-neutral-950 text-neutral-100 min-h-screen flex flex-col selection:bg-cyan-400 selection:text-black antialiased">
@@ -83,7 +112,7 @@
     
     <!-- Main Navigation Header -->
     <header class="border-b border-neutral-800/80 bg-neutral-900/75 backdrop-blur-xl sticky top-0 z-40 px-4 py-3">
-      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4">
         
         <!-- Brand & Namespace Info -->
         <div class="flex items-center gap-3">
@@ -97,7 +126,7 @@
               <span @click="resetToHome" class="font-black text-lg tracking-tight text-white cursor-pointer hover:text-cyan-400 transition">
                 mdb-overdrive
               </span>
-              <span class="text-xs bg-neutral-800 text-cyan-300 font-mono px-2.5 py-0.5 rounded-full border border-neutral-700/80">
+              <span class="hidden text-xs bg-neutral-800 text-cyan-300 font-mono px-2.5 py-0.5 rounded-full border border-neutral-700/80 sm:inline-flex">
                 /{{ activeNamespaceSlug }}
               </span>
             </div>
@@ -108,22 +137,22 @@
         </div>
 
         <!-- Overdrive Controls & Auth -->
-        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div class="flex shrink-0 items-center gap-2 sm:gap-3">
 
           <!-- User session / Auth Trigger -->
           <div v-if="user" class="flex items-center gap-2 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-xl">
             <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
             </svg>
-            <span class="text-xs text-neutral-200 font-mono max-w-[110px] truncate">{{ user.email }}</span>
-            <span :class="isAdmin ? 'bg-amber-950 text-amber-300 border-amber-800' : 'bg-cyan-950 text-cyan-300 border-cyan-800'" class="text-[10px] border px-1.5 py-0.5 rounded uppercase font-mono">{{ user.role || 'user' }}</span>
+            <span class="hidden text-xs text-neutral-200 font-mono max-w-[110px] truncate sm:inline">{{ user.email }}</span>
+            <span :class="isAdmin ? 'bg-amber-950 text-amber-300 border-amber-800' : 'bg-cyan-950 text-cyan-300 border-cyan-800'" class="hidden text-[10px] border px-1.5 py-0.5 rounded uppercase font-mono md:inline">{{ user.role || 'user' }}</span>
             <button @click="logout" title="Sign out / Clear token" class="text-neutral-500 hover:text-rose-400 transition ml-0.5">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
               </svg>
             </button>
           </div>
-          <button v-if="user" @click="endpointModalOpen = true" title="Gateway diagnostics" aria-label="Gateway diagnostics" class="w-8 h-8 grid place-items-center rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-500 hover:text-cyan-400 hover:border-neutral-700 transition">
+          <button v-if="user" @click="endpointModalOpen = true" title="Gateway diagnostics" aria-label="Gateway diagnostics" class="hidden w-8 h-8 place-items-center rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-500 hover:text-cyan-400 hover:border-neutral-700 transition sm:grid">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
             </svg>
@@ -137,7 +166,7 @@
             <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
             </svg>
-            <span>Share Overdrive</span>
+            <span class="hidden sm:inline">Share Overdrive</span>
           </button>
 
           <!-- Add Overdrive Item CTA -->
@@ -145,7 +174,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            <span>Add Item</span>
+            <span class="hidden sm:inline">Add Item</span>
           </button>
         </div>
       </div>
@@ -434,60 +463,50 @@
         <template v-else>
         
         <!-- Overdrive Title & Item Navigation -->
-        <div class="w-full mb-4 flex items-center justify-between gap-4 flex-wrap">
-          <div>
+        <div class="w-full mb-3 flex items-end justify-between gap-3">
+          <div class="min-w-0">
             <button v-if="!demoMode" @click="goToOverdriveIndex" class="mb-2 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-neutral-500 transition hover:text-cyan-400">
               <span>&larr;</span><span>All overdrives</span>
             </button>
-            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2">
-              <span>{{ portfolioTitle }}</span>
+            <h1 class="truncate text-xl font-black tracking-tight text-white sm:text-2xl">
+              {{ currentItem ? currentItem.title : portfolioTitle }}
             </h1>
-            <p class="text-xs sm:text-sm text-neutral-400 mt-0.5 flex items-center gap-2">
-              <span>Item {{ totalItems > 0 ? currentIndex + 1 : 0 }} of {{ totalItems }} &bull; {{ currentItem ? currentItem.title : 'Empty overdrive' }}</span>
-              <span class="text-neutral-600">&bull;</span>
-              <span class="font-mono text-cyan-400 text-xs">/{{ activeNamespaceSlug }}/{{ currentReelSlug }}</span>
+            <p class="mt-1 truncate text-[11px] text-neutral-500 sm:text-xs">
+              <span class="font-semibold text-neutral-300">{{ portfolioTitle }}</span>
+              <span aria-hidden="true"> &bull; </span>
+              <span>{{ totalItems > 0 ? currentIndex + 1 : 0 }} / {{ totalItems }}</span>
+              <span aria-hidden="true"> &bull; </span>
+              <span class="font-mono text-cyan-400">/{{ activeNamespaceSlug }}/{{ currentReelSlug }}</span>
             </p>
           </div>
 
-          <div class="flex items-center gap-2">
-            <div v-if="totalItems > 1" class="flex items-center gap-1.5">
-              <button @click="prevSlide" class="p-2 rounded-xl bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 transition text-neutral-300 hover:text-white" title="Previous Slide (Left Arrow)">
+          <div v-if="totalItems > 1" class="flex shrink-0 items-center gap-1.5">
+              <button @click="prevSlide" aria-label="Previous item" class="grid h-9 w-9 place-items-center rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-300 transition hover:bg-neutral-800 hover:text-white" title="Previous item">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
               </button>
-              <button @click="nextSlide" class="p-2 rounded-xl bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 transition text-neutral-300 hover:text-white" title="Next Slide (Right Arrow)">
+              <button @click="nextSlide" aria-label="Next item" class="grid h-9 w-9 place-items-center rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-300 transition hover:bg-neutral-800 hover:text-white" title="Next item">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
               </button>
-            </div>
           </div>
         </div>
 
         <!-- Overdrive Player Viewport -->
-        <div v-if="totalItems > 0" class="player-shell relative isolate w-full aspect-video overflow-hidden rounded-3xl border border-neutral-800 bg-black group">
+        <div v-if="totalItems > 0" ref="playerShell" class="player-stage player-shell group relative isolate overflow-hidden rounded-3xl border border-neutral-800 bg-black">
           <transition :name="slideDirection === 'next' ? 'reel-next' : 'reel-prev'" mode="out-in">
             <div :key="`${currentIndex}-${currentItem?.url}`" class="absolute inset-0">
-              <div v-if="mediaLoadState === 'loading' && currentMediaType !== 'link' && (!embeddedMediaDeferred || embedActivated)" class="media-sheen absolute inset-0 z-10 grid place-items-center bg-neutral-950" aria-live="polite">
+              <div v-if="mediaLoadState === 'loading' && currentMediaType !== 'link'" class="media-sheen absolute inset-0 z-10 grid place-items-center bg-neutral-950" aria-live="polite">
                 <div class="text-center">
                   <span class="inline-block h-7 w-7 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></span>
                   <p class="mt-3 text-[11px] font-bold uppercase tracking-widest text-neutral-500">Preparing {{ currentMediaType }}</p>
                 </div>
               </div>
 
-              <div v-if="embeddedMediaDeferred && !embedActivated" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-neutral-950 p-8 text-center">
-                <div class="mb-5 grid h-16 w-16 place-items-center rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 shadow-2xl shadow-cyan-500/20">
-                  <svg class="ml-1 h-7 w-7" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5.14v13.72a1 1 0 001.52.86l10.3-6.86a1 1 0 000-1.72L9.52 4.28A1 1 0 008 5.14z" /></svg>
-                </div>
-                <p class="font-mono text-[10px] font-bold uppercase text-cyan-300">{{ currentMediaType }} preview</p>
-                <h3 class="mt-2 text-lg font-black text-white sm:text-xl">{{ currentItem.title }}</h3>
-                <p class="mt-2 max-w-md text-xs leading-relaxed text-neutral-400">Load the interactive preview when you are ready.</p>
-                <button @click="activateEmbed" class="mt-5 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-extrabold text-black shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300 active:scale-95">Load preview</button>
-              </div>
-
               <iframe
-                v-if="['drive', 'youtube', 'vimeo', 'pdf'].includes(currentMediaType) && (!embeddedMediaDeferred || embedActivated)"
+                v-if="['drive', 'youtube', 'vimeo', 'pdf'].includes(currentMediaType)"
                 :src="currentMediaSource"
                 class="h-full w-full border-0 bg-black"
                 allow="autoplay; fullscreen; picture-in-picture"
@@ -543,11 +562,16 @@
                   <a :href="currentItem.url" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2 text-xs font-bold text-white hover:border-cyan-400">Open source ↗</a>
                 </div>
               </div>
-
               <div class="pointer-events-none absolute left-3 top-3 z-20 rounded-md border border-white/10 bg-black/70 px-2 py-1 font-mono text-[9px] font-bold uppercase text-neutral-300 backdrop-blur-md">{{ currentMediaType }}</div>
-              <a v-if="currentMediaType !== 'link'" :href="currentItem.url" target="_blank" rel="noopener noreferrer" aria-label="Open original media" title="Open original media" class="absolute right-3 top-3 z-20 grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-black/70 text-neutral-300 backdrop-blur-md transition hover:border-cyan-400/60 hover:text-cyan-300">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5M10.5 13.5L21 3m0 0h-6.75M21 3v6.75" /></svg>
-              </a>
+              <div class="absolute right-3 top-3 z-20 flex items-center gap-1.5">
+                <button v-if="fullscreenSupported" @click="togglePlayerFullscreen" :aria-label="isPlayerFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'" :title="isPlayerFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'" class="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-black/70 text-neutral-300 backdrop-blur-md transition hover:border-cyan-400/60 hover:text-cyan-300">
+                  <svg v-if="!isPlayerFullscreen" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3.75h-4.5v4.5m12-4.5h4.5v4.5m0 7.5v4.5h-4.5m-7.5 0h-4.5v-4.5" /></svg>
+                  <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 8.25h4.5v-4.5m12 4.5h-4.5v-4.5m0 16.5v-4.5h4.5m-12-12v4.5h-4.5m4.5 7.5v4.5h-4.5" /></svg>
+                </button>
+                <a v-if="currentMediaType !== 'link'" :href="currentItem.url" target="_blank" rel="noopener noreferrer" aria-label="Open original media" title="Open original media" class="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-black/70 text-neutral-300 backdrop-blur-md transition hover:border-cyan-400/60 hover:text-cyan-300">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5M10.5 13.5L21 3m0 0h-6.75M21 3v6.75" /></svg>
+                </a>
+              </div>
             </div>
           </transition>
 
@@ -1392,9 +1416,9 @@
       const mediaLoadState = ref('loading');
       const mediaError = ref('');
       const slideDirection = ref('next');
-      const deferHeavyEmbeds = window.matchMedia('(max-width: 767px), (pointer: coarse)').matches || navigator.connection?.saveData === true;
-      const embedActivated = ref(!deferHeavyEmbeds);
-      const embeddedMediaDeferred = computed(() => deferHeavyEmbeds && ['drive', 'youtube', 'vimeo', 'pdf'].includes(currentMediaType.value));
+      const playerShell = ref(null);
+      const isPlayerFullscreen = ref(false);
+      const fullscreenSupported = !!document.fullscreenEnabled && typeof document.documentElement.requestFullscreen === 'function';
       const filteredAdminResources = computed(() => {
         if (adminVisibility.value === 'all') return adminResources.value;
         return adminResources.value.filter((resource) => resource.visibility === adminVisibility.value);
@@ -1774,7 +1798,6 @@
         currentIndex.value = 0;
         mediaLoadState.value = 'loading';
         mediaError.value = '';
-        embedActivated.value = !deferHeavyEmbeds;
       };
 
       // Auth Handlers (Signup / Login)
@@ -1999,7 +2022,6 @@
         slideDirection.value = 'next';
         mediaLoadState.value = 'loading';
         mediaError.value = '';
-        embedActivated.value = !deferHeavyEmbeds;
         currentIndex.value = (currentIndex.value + 1) % totalItems.value;
       };
 
@@ -2008,7 +2030,6 @@
         slideDirection.value = 'prev';
         mediaLoadState.value = 'loading';
         mediaError.value = '';
-        embedActivated.value = !deferHeavyEmbeds;
         currentIndex.value = (currentIndex.value - 1 + totalItems.value) % totalItems.value;
       };
 
@@ -2017,14 +2038,20 @@
         slideDirection.value = index > currentIndex.value ? 'next' : 'prev';
         mediaLoadState.value = 'loading';
         mediaError.value = '';
-        embedActivated.value = !deferHeavyEmbeds;
         currentIndex.value = index;
       };
 
-      const activateEmbed = () => {
-        mediaLoadState.value = 'loading';
-        mediaError.value = '';
-        embedActivated.value = true;
+      const togglePlayerFullscreen = async () => {
+        if (!fullscreenSupported || !playerShell.value) return;
+        try {
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+          } else {
+            await playerShell.value.requestFullscreen();
+          }
+        } catch (error) {
+          console.warn('Fullscreen is unavailable:', error);
+        }
       };
 
       const handleMediaLoaded = () => {
@@ -2101,6 +2128,9 @@
 
       onMounted(async () => {
         window.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('fullscreenchange', () => {
+          isPlayerFullscreen.value = document.fullscreenElement === playerShell.value;
+        });
 
         let hasValidSession = false;
         if (token.value) {
@@ -2188,8 +2218,9 @@
         mediaLoadState,
         mediaError,
         slideDirection,
-        embedActivated,
-        embeddedMediaDeferred,
+        playerShell,
+        isPlayerFullscreen,
+        fullscreenSupported,
         currentReelSlug,
         apiStatus,
         responseLog,
@@ -2252,7 +2283,7 @@
         nextSlide,
         prevSlide,
         goToSlide,
-        activateEmbed,
+        togglePlayerFullscreen,
         handleMediaLoaded,
         handleMediaError,
         openShareModal,
