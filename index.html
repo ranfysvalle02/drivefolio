@@ -13,6 +13,11 @@
     
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0a0a0a;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+      background-size: 32px 32px;
     }
     .font-mono {
       font-family: 'JetBrains Mono', monospace;
@@ -28,6 +33,27 @@
     .glow-cyan {
       box-shadow: 0 0 35px -5px rgba(6, 182, 212, 0.35);
     }
+    .player-shell {
+      box-shadow: 0 24px 80px -34px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.025), 0 0 48px -28px rgba(34, 211, 238, 0.55);
+    }
+    .media-sheen::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.035) 50%, transparent 65%);
+      transform: translateX(-100%);
+      animation: media-sheen 1.8s ease-in-out infinite;
+    }
+    .reel-next-enter-active, .reel-next-leave-active,
+    .reel-prev-enter-active, .reel-prev-leave-active {
+      transition: opacity 220ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .reel-next-enter-from, .reel-prev-leave-to { opacity: 0; transform: translateX(24px) scale(0.985); }
+    .reel-next-leave-to, .reel-prev-enter-from { opacity: 0; transform: translateX(-24px) scale(0.985); }
+    @keyframes media-sheen {
+      55%, 100% { transform: translateX(100%); }
+    }
     .fade-enter-active, .fade-leave-active {
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
@@ -37,6 +63,18 @@
     }
     code, pre {
       font-family: 'JetBrains Mono', monospace;
+    }
+    :where(button, a, input, select, textarea):focus-visible {
+      outline: 2px solid rgb(34 211 238);
+      outline-offset: 3px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
@@ -90,13 +128,6 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
             </svg>
           </button>
-          <button v-if="isAdmin && !routeUsername && !demoMode" @click="toggleAdminConsole" :title="showAdminConsole ? 'Open my overdrives' : 'Open deployment administration'" class="flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-bold transition" :class="showAdminConsole ? 'border-cyan-800 bg-cyan-950 text-cyan-300' : 'border-amber-800 bg-amber-950 text-amber-300'">
-            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path v-if="showAdminConsole" stroke-linecap="round" stroke-linejoin="round" d="M3 13.5h18M5.25 6.75h13.5A2.25 2.25 0 0121 9v8.25a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 17.25V9a2.25 2.25 0 012.25-2.25z" />
-              <path v-else stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 0115 0m-15 0H3m16.5 0H21m-9-7.5V3m0 18v-1.5" />
-            </svg>
-            <span>{{ showAdminConsole ? 'My overdrives' : 'Admin data' }}</span>
-          </button>
           <button v-if="!user" @click="authMode = 'login'; authError = ''; authModalOpen = true" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition">
             Sign in
           </button>
@@ -115,12 +146,6 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             <span>Add Item</span>
-          </button>
-          <button v-if="showAdminConsole" @click="openAdminEditor()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-300 hover:bg-amber-200 text-black text-xs font-extrabold transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            <span>New Record</span>
           </button>
         </div>
       </div>
@@ -268,6 +293,7 @@
               <span v-if="authLoading" class="animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
               <span>Continue to Workspace</span>
             </button>
+            <a :href="adminPortalUrl" class="block text-center text-[11px] font-semibold text-neutral-500 transition hover:text-amber-300">Administrator? Open m-stash ↗</a>
           </form>
 
           <div class="mt-5 border-t border-neutral-800 pt-5 text-center">
@@ -440,47 +466,86 @@
         </div>
 
         <!-- Overdrive Player Viewport -->
-        <div v-if="totalItems > 0" class="relative w-full aspect-video rounded-3xl overflow-hidden bg-black border border-neutral-800 shadow-2xl group">
-          <template v-for="(item, idx) in safeItems" :key="idx">
-            <div 
-              v-show="idx === currentIndex"
-              class="absolute inset-0 transition-opacity duration-300"
-            >
-              <!-- Official Google Drive Sandbox Embed Iframe -->
+        <div v-if="totalItems > 0" class="player-shell relative isolate w-full aspect-video overflow-hidden rounded-3xl border border-neutral-800 bg-black group">
+          <transition :name="slideDirection === 'next' ? 'reel-next' : 'reel-prev'" mode="out-in">
+            <div :key="`${currentIndex}-${currentItem?.url}`" class="absolute inset-0">
+              <div v-if="mediaLoadState === 'loading' && currentMediaType !== 'link'" class="media-sheen absolute inset-0 z-10 grid place-items-center bg-neutral-950" aria-live="polite">
+                <div class="text-center">
+                  <span class="inline-block h-7 w-7 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></span>
+                  <p class="mt-3 text-[11px] font-bold uppercase tracking-widest text-neutral-500">Preparing {{ currentMediaType }}</p>
+                </div>
+              </div>
+
               <iframe
-                v-if="item.url && item.url.includes('drive.google.com')"
-                :src="formatDrivePreviewUrl(item.url)"
-                class="w-full h-full border-0"
-                allow="autoplay; fullscreen"
-                :title="item.title"
+                v-if="['drive', 'youtube', 'vimeo', 'pdf'].includes(currentMediaType)"
+                :src="currentMediaSource"
+                class="h-full w-full border-0 bg-black"
+                allow="autoplay; fullscreen; picture-in-picture"
+                :title="currentItem.title"
+                @load="handleMediaLoaded"
+                @error="handleMediaError"
               ></iframe>
 
-              <!-- Interactive Visual Card for Placeholders/Notes -->
-              <div v-else class="w-full h-full bg-gradient-to-tr from-neutral-950 via-neutral-900 to-neutral-950 flex flex-col items-center justify-center p-8 text-center">
-                <div class="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-4 shadow-xl shadow-cyan-500/10">
-                  <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z" />
-                  </svg>
+              <img
+                v-else-if="currentMediaType === 'image'"
+                :src="currentMediaSource"
+                :alt="currentItem.title"
+                class="h-full w-full bg-neutral-950 object-contain"
+                @load="handleMediaLoaded"
+                @error="handleMediaError"
+              >
+
+              <video
+                v-else-if="currentMediaType === 'video'"
+                :src="currentMediaSource"
+                class="h-full w-full bg-black object-contain"
+                controls
+                playsinline
+                preload="metadata"
+                @loadeddata="handleMediaLoaded"
+                @error="handleMediaError"
+              ></video>
+
+              <div v-else-if="currentMediaType === 'audio'" class="flex h-full w-full flex-col items-center justify-center bg-neutral-950 px-8 text-center">
+                <div class="mb-6 grid h-20 w-20 place-items-center rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 shadow-2xl shadow-cyan-500/20">
+                  <svg class="h-9 w-9" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18V5l10-2v13M9 9l10-2M6 21a3 3 0 100-6 3 3 0 000 6zm10-2a3 3 0 100-6 3 3 0 000 6z" /></svg>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">{{ item.title }}</h3>
-                <p class="text-xs text-neutral-400 max-w-md mb-6 leading-relaxed">
-                  {{ item.summary || 'Paste any public Google Drive sharing link (videos, PDFs, slides) to stream directly inside this player.' }}
-                </p>
-                <button v-if="canManageCurrentOverdrive" @click="openAddModal" class="px-5 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-cyan-500/20">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
-                  <span>Connect Drive Share URL</span>
-                </button>
+                <h3 class="text-xl font-black text-white">{{ currentItem.title }}</h3>
+                <p class="mt-2 max-w-lg text-sm text-neutral-400">{{ currentItem.summary || 'Audio presentation' }}</p>
+                <audio :src="currentMediaSource" class="mt-7 w-full max-w-xl" controls preload="metadata" @loadeddata="handleMediaLoaded" @error="handleMediaError"></audio>
               </div>
+
+              <div v-else class="flex h-full w-full flex-col items-center justify-center bg-neutral-950 p-8 text-center">
+                <div class="mb-5 grid h-16 w-16 place-items-center rounded-2xl border border-neutral-700 bg-neutral-900 text-cyan-300 shadow-xl">
+                  <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5M10.5 13.5L21 3m0 0h-6.75M21 3v6.75" /></svg>
+                </div>
+                <h3 class="text-xl font-black text-white">{{ currentItem.title }}</h3>
+                <p class="mt-2 max-w-lg text-sm text-neutral-400">{{ currentItem.summary || 'Open this resource in a new tab.' }}</p>
+                <a :href="currentMediaSource" target="_blank" rel="noopener noreferrer" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-extrabold text-black shadow-lg shadow-cyan-500/20 transition hover:-translate-y-0.5 hover:bg-cyan-300">Open resource <span aria-hidden="true">↗</span></a>
+              </div>
+
+              <div v-if="mediaLoadState === 'error'" class="absolute inset-0 z-20 grid place-items-center bg-neutral-950/95 p-8 text-center">
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-widest text-rose-300">Preview unavailable</p>
+                  <h3 class="mt-2 text-xl font-black text-white">{{ currentItem.title }}</h3>
+                  <p class="mt-2 text-sm text-neutral-400">{{ mediaError }}</p>
+                  <a :href="currentItem.url" target="_blank" rel="noopener noreferrer" class="mt-5 inline-flex rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2 text-xs font-bold text-white hover:border-cyan-400">Open source ↗</a>
+                </div>
+              </div>
+
+              <div class="pointer-events-none absolute left-3 top-3 z-20 rounded-md border border-white/10 bg-black/70 px-2 py-1 font-mono text-[9px] font-bold uppercase text-neutral-300 backdrop-blur-md">{{ currentMediaType }}</div>
+              <a v-if="currentMediaType !== 'link'" :href="currentItem.url" target="_blank" rel="noopener noreferrer" aria-label="Open original media" title="Open original media" class="absolute right-3 top-3 z-20 grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-black/70 text-neutral-300 backdrop-blur-md transition hover:border-cyan-400/60 hover:text-cyan-300">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5M10.5 13.5L21 3m0 0h-6.75M21 3v6.75" /></svg>
+              </a>
             </div>
-          </template>
+          </transition>
 
           <!-- Hover Overlay Control Arrows -->
           <button 
             v-if="totalItems > 1"
             @click="prevSlide" 
-            class="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-white opacity-0 group-hover:opacity-100 transition hover:scale-110 active:scale-95"
+            aria-label="Previous item"
+            class="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition hover:scale-110 active:scale-95"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -489,7 +554,8 @@
           <button 
             v-if="totalItems > 1"
             @click="nextSlide" 
-            class="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-white opacity-0 group-hover:opacity-100 transition hover:scale-110 active:scale-95"
+            aria-label="Next item"
+            class="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition hover:scale-110 active:scale-95"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -519,7 +585,8 @@
           <button
             v-for="(_, idx) in safeItems"
             :key="idx"
-            @click="currentIndex = idx"
+            @click="goToSlide(idx)"
+            :aria-label="`Open item ${idx + 1}`"
             :class="[
               'h-2.5 rounded-full transition-all duration-300',
               idx === currentIndex 
@@ -614,6 +681,7 @@
               <span v-if="authLoading" class="animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
               <span>{{ authMode === 'signup' ? 'Create my workspace' : 'Sign in' }}</span>
             </button>
+            <a v-if="authMode === 'login'" :href="adminPortalUrl" class="block text-center text-[11px] font-semibold text-neutral-500 transition hover:text-amber-300">Administrator? Open m-stash ↗</a>
           </form>
         </div>
       </div>
@@ -766,7 +834,7 @@
             <button @click="addModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
           </div>
           <p class="text-xs text-neutral-400 mb-4">
-            {{ creatingOverdrive ? 'Start a new collection with its first public Google Drive item.' : `Add another Drive item to /${currentReelSlug}.` }}
+            {{ creatingOverdrive ? 'Start a new collection with its first media item.' : `Add another media item to /${currentReelSlug}.` }}
           </p>
 
           <form @submit.prevent="handleSaveResource" class="space-y-3.5">
@@ -809,17 +877,32 @@
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Google Drive Share Link</label>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Media URL</label>
               <input 
                 type="url" 
                 required 
-                placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                placeholder="https://drive.google.com/... or a direct media URL"
                 v-model="newUrl"
                 class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 outline-none font-mono"
               >
               <p class="text-[10px] text-neutral-500 mt-1">
-                Paste a public Drive link and we will prepare it for this overdrive.
+                Drive, YouTube, Vimeo, images, video, audio, and PDFs are supported.
               </p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Media type</label>
+              <select v-model="newMediaType" class="w-full rounded-xl border border-neutral-800 bg-neutral-950 px-3 py-2 text-xs text-white outline-none transition focus:border-cyan-400">
+                <option value="auto">Auto detect</option>
+                <option value="drive">Google Drive</option>
+                <option value="youtube">YouTube</option>
+                <option value="vimeo">Vimeo</option>
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+                <option value="audio">Audio</option>
+                <option value="pdf">PDF</option>
+                <option value="link">External link</option>
+              </select>
             </div>
 
             <div v-if="saveError" class="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs">
@@ -1052,6 +1135,8 @@
   </div>
 
   <script>
+  const adminPortalUrl = 'https://m-stash.onrender.com/';
+
   // Utility: Convert standard Google Drive URL into high-speed /preview iframe embed URL
   function formatDrivePreviewUrl(url) {
     if (!url) return '';
@@ -1069,6 +1154,47 @@
     }
 
     return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : url;
+  }
+
+  function detectMediaType(item) {
+    const url = typeof item === 'string' ? item : item?.url || '';
+    const explicitType = typeof item === 'object' ? item?.type : '';
+    if (explicitType && explicitType !== 'auto' && explicitType !== 'link') return explicitType;
+
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+      const path = parsed.pathname.toLowerCase();
+      if (host === 'drive.google.com' || host === 'docs.google.com') return 'drive';
+      if (host === 'youtu.be' || host.endsWith('youtube.com')) return 'youtube';
+      if (host === 'vimeo.com' || host.endsWith('.vimeo.com')) return 'vimeo';
+      if (/\.(?:png|jpe?g|gif|webp|avif|svg)$/.test(path)) return 'image';
+      if (/\.(?:mp4|webm|mov|m4v|ogv)$/.test(path)) return 'video';
+      if (/\.(?:mp3|wav|m4a|aac|ogg|flac)$/.test(path)) return 'audio';
+      if (/\.pdf$/.test(path)) return 'pdf';
+    } catch {}
+    return 'link';
+  }
+
+  function mediaEmbedUrl(item) {
+    const url = item?.url || '';
+    const type = detectMediaType(item);
+    if (type === 'drive') return formatDrivePreviewUrl(url);
+
+    try {
+      const parsed = new URL(url);
+      if (type === 'youtube') {
+        const videoId = parsed.hostname.includes('youtu.be')
+          ? parsed.pathname.split('/').filter(Boolean)[0]
+          : parsed.searchParams.get('v') || parsed.pathname.match(/\/(?:embed|shorts)\/([^/]+)/)?.[1];
+        return videoId ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}` : url;
+      }
+      if (type === 'vimeo') {
+        const videoId = parsed.pathname.split('/').filter(Boolean).find((part) => /^\d+$/.test(part));
+        return videoId ? `https://player.vimeo.com/video/${videoId}` : url;
+      }
+    } catch {}
+    return url;
   }
 
   // Utility: Cross-browser clipboard copy
@@ -1196,6 +1322,7 @@
       const newTitle = ref('');
       const newItemTitle = ref('');
       const newUrl = ref('');
+      const newMediaType = ref('auto');
       const saveLoading = ref(false);
       const saveError = ref('');
 
@@ -1249,6 +1376,11 @@
         if (totalItems.value === 0) return null;
         return safeItems.value[currentIndex.value] || null;
       });
+      const currentMediaType = computed(() => detectMediaType(currentItem.value));
+      const currentMediaSource = computed(() => mediaEmbedUrl(currentItem.value));
+      const mediaLoadState = ref('loading');
+      const mediaError = ref('');
+      const slideDirection = ref('next');
       const filteredAdminResources = computed(() => {
         if (adminVisibility.value === 'all') return adminResources.value;
         return adminResources.value.filter((resource) => resource.visibility === adminVisibility.value);
@@ -1626,6 +1758,8 @@
 
         items.value = resourceItems(resource);
         currentIndex.value = 0;
+        mediaLoadState.value = 'loading';
+        mediaError.value = '';
       };
 
       // Auth Handlers (Signup / Login)
@@ -1687,6 +1821,10 @@
         }
 
         await verifySession();
+        if (isAdmin.value) {
+          redirectAdminToPortal();
+          return;
+        }
         await fetchNamespace();
         await loadReelData();
         await checkBackend();
@@ -1705,6 +1843,13 @@
           if (err.status === 401 || err.status === 403) logout();
           return false;
         }
+      };
+
+      const redirectAdminToPortal = () => {
+        localStorage.removeItem('overdrive_token');
+        localStorage.removeItem('overdrive_user');
+        localStorage.removeItem('overdrive_namespace');
+        window.location.replace(adminPortalUrl);
       };
 
       const logout = () => {
@@ -1732,6 +1877,7 @@
           newTitle.value = portfolioTitle.value !== 'Untitled Overdrive' ? portfolioTitle.value : '';
           newItemTitle.value = '';
           newUrl.value = '';
+          newMediaType.value = 'auto';
           saveError.value = '';
           addModalOpen.value = true;
         }
@@ -1743,6 +1889,7 @@
         newTitle.value = '';
         newItemTitle.value = '';
         newUrl.value = '';
+        newMediaType.value = 'auto';
         saveError.value = '';
         addModalOpen.value = true;
       };
@@ -1756,7 +1903,9 @@
         saveLoading.value = true;
         saveError.value = '';
 
-        const formattedUrl = formatDrivePreviewUrl(newUrl.value);
+        const rawUrl = newUrl.value.trim();
+        const selectedMediaType = newMediaType.value === 'auto' ? detectMediaType(rawUrl) : newMediaType.value;
+        const formattedUrl = selectedMediaType === 'drive' ? formatDrivePreviewUrl(rawUrl) : rawUrl;
         const slug = creatingOverdrive.value ? newSlug.value : currentReelSlug.value;
         if (creatingOverdrive.value && newSlugIssue.value) {
           saveError.value = newSlugIssue.value;
@@ -1766,9 +1915,9 @@
         const wasEmpty = creatingOverdrive.value || items.value.length === 0;
 
         const newItem = {
-          title: newItemTitle.value || 'Drive Resource',
+          title: newItemTitle.value || 'Media item',
           url: formattedUrl,
-          type: 'drive',
+          type: selectedMediaType,
           summary: `Added to /${activeNamespaceSlug.value}/${slug}`
         };
 
@@ -1818,6 +1967,7 @@
           addModalOpen.value = false;
           newUrl.value = '';
           newItemTitle.value = '';
+          newMediaType.value = 'auto';
           if (wasEmpty) {
             shareModalOpen.value = true;
           }
@@ -1831,12 +1981,36 @@
       // Item Navigation
       const nextSlide = () => {
         if (totalItems.value === 0) return;
+        slideDirection.value = 'next';
+        mediaLoadState.value = 'loading';
+        mediaError.value = '';
         currentIndex.value = (currentIndex.value + 1) % totalItems.value;
       };
 
       const prevSlide = () => {
         if (totalItems.value === 0) return;
+        slideDirection.value = 'prev';
+        mediaLoadState.value = 'loading';
+        mediaError.value = '';
         currentIndex.value = (currentIndex.value - 1 + totalItems.value) % totalItems.value;
+      };
+
+      const goToSlide = (index) => {
+        if (index === currentIndex.value) return;
+        slideDirection.value = index > currentIndex.value ? 'next' : 'prev';
+        mediaLoadState.value = 'loading';
+        mediaError.value = '';
+        currentIndex.value = index;
+      };
+
+      const handleMediaLoaded = () => {
+        mediaLoadState.value = 'loaded';
+        mediaError.value = '';
+      };
+
+      const handleMediaError = () => {
+        mediaLoadState.value = 'error';
+        mediaError.value = 'This media could not be previewed here.';
       };
 
       const openShareModal = () => {
@@ -1908,6 +2082,10 @@
         if (token.value) {
           hasValidSession = await verifySession();
           if (hasValidSession) {
+            if (isAdmin.value) {
+              redirectAdminToPortal();
+              return;
+            }
             await fetchNamespace();
             await checkBackend();
           }
@@ -1936,6 +2114,7 @@
       });
 
       return {
+        adminPortalUrl,
         apiUrl,
         apiUrlInput,
         cleanApiHostname,
@@ -1980,6 +2159,11 @@
         totalItems,
         currentIndex,
         currentItem,
+        currentMediaType,
+        currentMediaSource,
+        mediaLoadState,
+        mediaError,
+        slideDirection,
         currentReelSlug,
         apiStatus,
         responseLog,
@@ -2003,6 +2187,7 @@
         newTitle,
         newItemTitle,
         newUrl,
+        newMediaType,
         saveLoading,
         saveError,
         copiedShare,
@@ -2015,6 +2200,7 @@
         emailShareUrl,
         qrCodeUrl,
         formatDrivePreviewUrl,
+        detectMediaType,
         validateUsername,
         checkBackend,
         updateApiUrl,
@@ -2039,6 +2225,9 @@
         handleSaveResource,
         nextSlide,
         prevSlide,
+        goToSlide,
+        handleMediaLoaded,
+        handleMediaError,
         openShareModal,
         openOverdrive,
         goToOverdriveIndex,
