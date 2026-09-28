@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>mdb-overdrive — High-Octane Cloud Reel Showcase</title>
   
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./tailwind.css">
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   
   <style>
@@ -47,13 +47,11 @@
     <div class="bg-gradient-to-r from-cyan-950/90 via-blue-950/90 to-purple-950/90 border-b border-cyan-800/40 px-3 py-1.5 text-xs text-center text-cyan-200 flex items-center justify-center gap-2 flex-wrap z-50">
       <span class="bg-cyan-500/25 text-cyan-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border border-cyan-500/40 uppercase tracking-wider flex items-center gap-1">
         <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-        v2.0 DLAC Gateway
+        Drive to reel
       </span>
-      <span class="font-medium">mdb-overdrive &bull; Powered by <button @click="mStashModalOpen = true" class="text-cyan-300 underline font-mono font-bold hover:text-white transition">m-stash</button> (Identity &amp; Scoped Resources)</span>
-      <span class="text-neutral-500 hidden sm:inline">&bull;</span>
-      <button @click="mStashModalOpen = true" class="text-cyan-400 hover:text-cyan-200 font-mono font-bold underline transition flex items-center gap-1">
-        <span>Why m-stash?</span>
-        <span class="text-[10px] bg-cyan-500/20 px-1.5 py-0.2 rounded border border-cyan-500/30">Architecture &rarr;</span>
+      <span class="font-medium">Turn a Google Drive link into a shareable reel.</span>
+      <button @click="mStashModalOpen = true" class="text-cyan-400 hover:text-cyan-200 font-semibold underline transition">
+        How it works
       </button>
     </div>
 
@@ -77,9 +75,8 @@
                 /{{ activeNamespaceSlug }}
               </span>
             </div>
-            <p class="text-[11px] text-neutral-400 font-mono hidden sm:flex items-center gap-1.5">
-              <span>Endpoint:</span>
-              <span class="text-neutral-300 font-semibold">{{ cleanApiHostname }}</span>
+            <p class="text-[11px] text-neutral-400 hidden sm:block">
+              Share your work from Google Drive.
             </p>
           </div>
         </div>
@@ -88,15 +85,15 @@
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
           
           <!-- m-stash Discovery Button -->
-          <button @click="mStashModalOpen = true" class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-800/60 text-xs font-mono text-cyan-300 transition hover:border-cyan-500">
+          <button @click="mStashModalOpen = true" class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-800/60 text-xs font-semibold text-cyan-300 transition hover:border-cyan-500">
             <svg class="w-3.5 h-3.5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
-            <span>What is m-stash?</span>
+            <span>How it works</span>
           </button>
 
           <!-- Gateway Diagnostics -->
-          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs font-mono">
+          <div v-if="user" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs font-mono">
             <button @click="endpointModalOpen = true" class="text-neutral-400 hover:text-cyan-400 flex items-center gap-1 transition" title="Diagnostics & API settings">
               <span>Gateway:</span>
               <svg class="w-3 h-3 text-neutral-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -111,6 +108,10 @@
               <span class="w-2 h-2 rounded-full bg-amber-400"></span>
               <span>Offline / Idle</span>
             </button>
+            <span v-else-if="apiStatus === 'idle'" class="text-neutral-400 font-semibold flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-neutral-500"></span>
+              <span>Sign in to verify</span>
+            </span>
             <span v-else class="text-cyan-400 font-semibold flex items-center gap-1">
               <span class="animate-spin w-2.5 h-2.5 border border-cyan-400 border-t-transparent rounded-full"></span>
               <span>Connecting</span>
@@ -131,11 +132,11 @@
             </button>
           </div>
           <button v-else @click="authModalOpen = true" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition">
-            Sign In / Register
+            Start a reel
           </button>
 
           <!-- Share Button -->
-          <button @click="openShareModal" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-cyan-300 border border-neutral-700 hover:border-cyan-500/50 transition">
+          <button v-if="user || totalItems > 0" @click="openShareModal" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-cyan-300 border border-neutral-700 hover:border-cyan-500/50 transition">
             <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
             </svg>
@@ -143,7 +144,7 @@
           </button>
 
           <!-- Add Reel / Resource CTA -->
-          <button @click="openAddModal" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition shadow-lg shadow-cyan-500/20 active:scale-95">
+          <button v-if="user" @click="openAddModal" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition shadow-lg shadow-cyan-500/20 active:scale-95">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
@@ -164,11 +165,11 @@
               <svg class="w-3.5 h-3.5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z" />
               </svg>
-              <span>Identity In. Useful Data Out.</span>
+              <span>Your work, ready to share</span>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Put Drive in Overdrive</h2>
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Make your Drive work look great.</h2>
             <p class="text-xs sm:text-sm text-neutral-400 mt-2 max-w-md mx-auto">
-              Turn raw Google Drive decks, videos, and PDFs into instant interactive showcases. Powered by <strong class="text-cyan-300">m-stash</strong> owner-scoped resource routing.
+              Create a clean, shareable reel from your videos, decks, and PDFs. Nothing to upload.
             </p>
           </div>
 
@@ -179,7 +180,7 @@
               :class="authMode === 'signup' ? 'bg-neutral-800 text-white font-semibold shadow-sm' : 'text-neutral-400 hover:text-white'"
               class="flex-1 py-2 text-xs rounded-lg transition"
             >
-              Claim Username (Sign Up)
+              Create a reel
             </button>
             <button 
               @click="authMode = 'login'; authError = ''"
@@ -217,14 +218,14 @@
 
             <div>
               <div class="flex items-center justify-between mb-1">
-                <label class="block text-xs font-semibold text-neutral-300">Username (Namespace Slug)</label>
-                <span class="text-[10px] font-mono text-cyan-400">/{{ usernameInput || 'username' }}</span>
+                <label class="block text-xs font-semibold text-neutral-300">Your reel address</label>
+                <span class="text-[10px] font-mono text-cyan-400">/{{ usernameInput || 'your-name' }}</span>
               </div>
               <input 
                 type="text" 
                 required 
                 maxlength="32"
-                placeholder="e.g. creative-pro"
+                placeholder="e.g. your-name"
                 v-model="usernameInput"
                 @input="validateUsername"
                 class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:border-cyan-400 outline-none transition font-mono"
@@ -234,19 +235,9 @@
               </p>
             </div>
 
-            <div class="pt-1">
-              <label class="flex items-start gap-2.5 cursor-pointer text-xs text-neutral-400 select-none">
-                <input 
-                  type="checkbox" 
-                  v-model="acceptedPrivacy" 
-                  required
-                  class="mt-0.5 rounded bg-neutral-950 border-neutral-800 text-cyan-400 focus:ring-0"
-                >
-                <span>
-                  I accept the <button type="button" @click="privacyModalOpen = true" class="text-cyan-400 underline hover:text-cyan-300 font-medium">3-Point Privacy Policy</button> (zero file ingestion; media streams directly from Google Drive).
-                </span>
-              </label>
-            </div>
+            <p class="text-[11px] text-neutral-500">
+              Your files stay in Google Drive. <button type="button" @click="privacyModalOpen = true" class="text-cyan-400 hover:text-cyan-300 underline">Privacy details</button>
+            </p>
 
             <div v-if="authError" class="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs">
               {{ authError }}
@@ -258,7 +249,7 @@
               class="w-full py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span v-if="authLoading" class="animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
-              <span>Claim Username &amp; Launch Reel</span>
+              <span>Create my reel</span>
             </button>
           </form>
 
@@ -300,33 +291,6 @@
             </button>
           </form>
 
-          <!-- Quick Interactive Sample Reel Preview -->
-          <div class="mt-6 pt-5 border-t border-neutral-800/80 flex items-center justify-between text-xs text-neutral-400">
-            <span>Want to test the player immediately?</span>
-            <button @click="loadSampleReel" class="text-cyan-400 hover:underline font-bold flex items-center gap-1">
-              <span>Preview Demo Reel</span>
-              <span>&rarr;</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- m-stash Architecture Callout Card -->
-        <div class="glass-panel border border-neutral-800/90 rounded-3xl p-5 sm:p-6 mt-4 relative overflow-hidden bg-gradient-to-br from-neutral-900/70 via-neutral-950/90 to-cyan-950/20">
-          <div class="flex items-start justify-between gap-4">
-            <div class="space-y-1.5">
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-                <span class="text-xs font-mono uppercase tracking-widest text-cyan-400 font-bold">m-stash Integration</span>
-              </div>
-              <h3 class="text-sm sm:text-base font-bold text-white">Document-Level Access Control (DLAC) in Go</h3>
-              <p class="text-xs text-neutral-400 leading-relaxed max-w-lg">
-                Your authenticated session claims a permanent namespace route (<code class="text-cyan-300 font-mono">/v1/me/namespace</code>). Every item write maps cleanly to <code class="text-cyan-300 font-mono">/v1/me/resources/reel</code> without client-side owner ID tampering.
-              </p>
-            </div>
-            <button @click="mStashModalOpen = true" class="shrink-0 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-cyan-500 hover:text-black text-cyan-300 font-mono text-xs font-bold transition border border-neutral-700 hover:border-transparent">
-              Architecture &rarr;
-            </button>
-          </div>
         </div>
       </div>
 
@@ -422,7 +386,7 @@
             class="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-white opacity-0 group-hover:opacity-100 transition hover:scale-110 active:scale-95"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="8.25 4.5l7.5 7.5-7.5 7.5" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
           </button>
         </div>
@@ -490,7 +454,7 @@
       <div v-if="authModalOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-white">m-stash Identity</h2>
+            <h2 class="text-lg font-bold text-white">Start your reel</h2>
             <button @click="authModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
           </div>
 
@@ -560,7 +524,7 @@
               class="w-full py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
             >
               <span v-if="authLoading" class="animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
-              <span>{{ authMode === 'signup' ? 'Claim Username & Create Account' : 'Sign In' }}</span>
+              <span>{{ authMode === 'signup' ? 'Create my reel' : 'Sign in' }}</span>
             </button>
           </form>
         </div>
@@ -668,25 +632,25 @@
               <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
-              3-Point Privacy Policy
+              Your privacy
             </h2>
             <button @click="privacyModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
           </div>
 
           <div class="space-y-3 text-xs text-neutral-300">
             <div class="p-3 bg-neutral-950 border border-neutral-800/80 rounded-2xl space-y-1">
-              <p class="font-bold text-white">1. Zero File Ingestion</p>
-              <p class="text-neutral-400">Your media files never touch our backend server. All Google Drive content renders through Google's sandbox <code class="text-cyan-400 font-mono">/preview</code> player.</p>
+              <p class="font-bold text-white">1. Your files stay in Drive</p>
+              <p class="text-neutral-400">We display your shared Drive links without copying media into this app.</p>
             </div>
 
             <div class="p-3 bg-neutral-950 border border-neutral-800/80 rounded-2xl space-y-1">
-              <p class="font-bold text-white">2. Scoped Ownership</p>
-              <p class="text-neutral-400">All saved resources are bound to your account namespace (<code class="text-cyan-400 font-mono">/v1/me/resources</code>) via bearer tokens.</p>
+              <p class="font-bold text-white">2. Your reel is yours</p>
+              <p class="text-neutral-400">Your account controls the reel address and the items you publish.</p>
             </div>
 
             <div class="p-3 bg-neutral-950 border border-neutral-800/80 rounded-2xl space-y-1">
-              <p class="font-bold text-white">3. Zero Telemetry Tracking</p>
-              <p class="text-neutral-400">No ad pixels or tracking cookies. All requests pass through m-stash gateway proxies.</p>
+              <p class="font-bold text-white">3. No advertising trackers</p>
+              <p class="text-neutral-400">We do not add ad pixels or tracking cookies to your reel.</p>
             </div>
 
             <button 
@@ -714,7 +678,7 @@
             <button @click="addModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
           </div>
           <p class="text-xs text-neutral-400 mb-4">
-            Saves cleanly via <code class="text-cyan-300 font-mono">POST /v1/me/resources/reel</code> (or updates via <code class="text-cyan-300 font-mono">PUT</code> on conflict).
+            Add a public Google Drive link to your reel. You can edit it anytime.
           </p>
 
           <form @submit.prevent="handleSaveResource" class="space-y-3.5">
@@ -760,7 +724,7 @@
                 class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 outline-none font-mono"
               >
               <p class="text-[10px] text-neutral-500 mt-1">
-                Standard Drive view links are automatically reformatted to stream cleanly inside high-speed <code class="text-neutral-400 font-mono">/preview</code> sandboxes.
+                Paste a public Drive link and we will prepare it to play in your reel.
               </p>
             </div>
 
@@ -771,7 +735,7 @@
                   v-model="isPublic"
                   class="rounded bg-neutral-950 border-neutral-800 text-cyan-400 focus:ring-0"
                 >
-                <span>Make resource publicly visible via <code class="text-cyan-400 font-mono">/v1/shared/resources</code></span>
+                <span>Anyone with your reel link can view this item</span>
               </label>
             </div>
 
@@ -793,7 +757,7 @@
                 class="px-5 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
               >
                 <span v-if="saveLoading" class="animate-spin w-3 h-3 border-2 border-black border-t-transparent rounded-full"></span>
-                <span>Save Resource</span>
+                <span>Add to reel</span>
               </button>
             </div>
           </form>
@@ -821,6 +785,9 @@
                 <span class="text-neutral-400">Server Status:</span>
                 <span v-if="apiStatus === 'online'" class="text-emerald-400 font-bold flex items-center gap-1">
                   <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Live Gateway
+                </span>
+                <span v-else-if="apiStatus === 'idle'" class="text-neutral-400 font-bold flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-neutral-500"></span> Sign in to verify
                 </span>
                 <span v-else class="text-amber-400 font-bold flex items-center gap-1">
                   <span class="w-2 h-2 rounded-full bg-amber-400"></span> Disconnected
@@ -851,8 +818,8 @@
             </div>
 
             <div class="flex gap-2 pt-1">
-              <button @click="apiUrlInput = location.origin; updateApiUrl()" class="flex-1 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-[11px] text-neutral-300 font-mono transition">
-                Same Origin (Default)
+              <button @click="apiUrlInput = defaultApiUrl; updateApiUrl()" class="flex-1 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-[11px] text-neutral-300 font-mono transition">
+                Hosted m-stash
               </button>
               <button @click="apiUrlInput = 'http://localhost:4000'; updateApiUrl()" class="flex-1 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-[11px] text-neutral-300 font-mono transition">
                 Localhost :4000
@@ -889,12 +856,12 @@
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h2 class="text-lg sm:text-xl font-black text-white tracking-tight">m-stash</h2>
-                  <span class="text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-500/40 uppercase">
-                    Go DLAC Gateway
+                  <h2 class="text-lg sm:text-xl font-black text-white tracking-tight">How your reel works</h2>
+                  <span class="text-[10px] font-semibold bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-500/40 uppercase">
+                    Powered by m-stash
                   </span>
                 </div>
-                <p class="text-xs text-neutral-400">Zero-boilerplate browser integration &amp; security gateway</p>
+                <p class="text-xs text-neutral-400">A simple route from a Drive link to a shareable reel.</p>
               </div>
             </div>
             <button @click="mStashModalOpen = false" class="text-neutral-500 hover:text-white transition text-2xl leading-none">&times;</button>
@@ -904,46 +871,29 @@
             
             <div class="p-4 bg-neutral-950 border border-neutral-800 rounded-2xl space-y-2">
               <h3 class="font-bold text-white text-sm flex items-center gap-1.5 text-cyan-300">
-                <span>1. What is m-stash?</span>
+                <span>1. Choose your reel address</span>
               </h3>
               <p class="text-neutral-300 leading-relaxed">
-                <strong>m-stash</strong> is a lightweight Go security gateway that bridges web browsers and database persistence. It authenticates users, resolves permanent personal namespace routes, and enforces strict Document-Level Access Control (DLAC) without revealing connection strings or owner identifiers.
+                Claim a simple address such as <code class="text-cyan-300 font-mono">/your-name</code>. It is the link you will share when your reel is ready.
               </p>
             </div>
 
             <div class="p-4 bg-neutral-950 border border-neutral-800 rounded-2xl space-y-2">
               <h3 class="font-bold text-white text-sm flex items-center gap-1.5 text-cyan-300">
-                <span>2. Key Browser Endpoints</span>
+                <span>2. Add your Drive links</span>
               </h3>
-              <div class="bg-black/90 p-3 rounded-xl font-mono text-[11px] text-cyan-300 border border-neutral-800 space-y-1.5">
-                <div><span class="text-emerald-400">POST</span> /v1/auth/signup <span class="text-neutral-500">{ email, password, username }</span></div>
-                <div><span class="text-emerald-400">POST</span> /v1/auth/login <span class="text-neutral-500">{ email, password }</span></div>
-                <div><span class="text-blue-400">GET</span>  /v1/me/namespace <span class="text-neutral-500">Resolves /user-slug</span></div>
-                <div><span class="text-amber-400">POST</span> /v1/me/resources/{type} <span class="text-neutral-500">Save private resource</span></div>
-                <div><span class="text-amber-400">PUT</span>  /v1/me/resources/{type}/{slug} <span class="text-neutral-500">Update resource</span></div>
-                <div><span class="text-blue-400">GET</span>  /v1/shared/resources/{type} <span class="text-neutral-500">Read shared records</span></div>
-              </div>
+              <p class="text-neutral-300 leading-relaxed">
+                Add videos, decks, or PDFs you already share from Google Drive. Your files stay there; the reel simply presents them beautifully.
+              </p>
             </div>
 
             <div class="p-4 bg-neutral-950 border border-neutral-800 rounded-2xl space-y-2">
               <h3 class="font-bold text-white text-sm flex items-center gap-1.5 text-cyan-300">
-                <span>3. Username Namespace Rules</span>
+                <span>3. Share when you are ready</span>
               </h3>
               <p class="text-neutral-300 leading-relaxed">
-                Usernames dictate your permanent personal route (<code class="text-cyan-300 font-mono">/slug</code>). Rules: 3-32 lowercase characters or numbers with single <code class="text-neutral-200 font-mono">-</code> or <code class="text-neutral-200 font-mono">_</code> separators.
+                Your reel has one clean link, so clients and collaborators always see the latest version. You stay in control of what is public.
               </p>
-            </div>
-
-            <div class="p-4 bg-cyan-950/30 border border-cyan-800/50 rounded-2xl space-y-2.5">
-              <h3 class="font-bold text-white text-sm text-cyan-200">
-                4. Docker Hub Image
-              </h3>
-              <p class="text-neutral-300 text-xs">
-                Spin up a production container with zero dependencies:
-              </p>
-              <div class="relative bg-black/90 p-3 rounded-xl font-mono text-[11px] text-emerald-400 border border-neutral-800">
-                <code>docker run -d -p 4000:4000 -e MONGO_URI="mongodb+srv://..." oblivio/m-stash</code>
-              </div>
             </div>
 
           </div>
@@ -959,12 +909,12 @@
           <span class="font-bold text-neutral-300">mdb-overdrive</span>
           <span>&bull;</span>
           <button @click="mStashModalOpen = true" class="text-cyan-400 hover:text-cyan-300 underline font-mono">
-            m-stash browser integration
+            How it works
           </button>
         </div>
         <div class="flex items-center gap-4 font-mono text-[11px] text-neutral-400 flex-wrap justify-center sm:justify-end">
           <button @click="mStashModalOpen = true" class="hover:text-cyan-400 transition underline">
-            Architecture
+            How it works
           </button>
           <button @click="privacyModalOpen = true" class="hover:text-cyan-400 transition underline">
             Privacy Policy
@@ -1036,7 +986,11 @@
   createApp({
     setup() {
       // Configuration & API Endpoints
-      const apiUrl = ref(localStorage.getItem('overdrive_api_url') || location.origin);
+      const defaultApiUrl = 'https://m-stash.onrender.com';
+      const savedApiUrl = localStorage.getItem('overdrive_api_url');
+      const apiUrl = ref(
+        savedApiUrl && savedApiUrl !== location.origin ? savedApiUrl : defaultApiUrl
+      );
       const apiUrlInput = ref(apiUrl.value);
       
       // Modals
@@ -1182,17 +1136,17 @@
 
       // Backend Health Ping
       const checkBackend = async () => {
+        if (!token.value) {
+          apiStatus.value = 'idle';
+          return;
+        }
+
         isPinging.value = true;
         try {
-          await apiRequest('/v1/shared/resources/reel?limit=1', { authenticated: false });
+          await apiRequest('/v1/auth/verify');
           apiStatus.value = 'online';
         } catch (e) {
-          try {
-            await apiRequest('/v1/auth/verify', { method: 'GET' });
-            apiStatus.value = 'online';
-          } catch (e2) {
-            apiStatus.value = 'offline';
-          }
+          apiStatus.value = 'offline';
         } finally {
           isPinging.value = false;
         }
@@ -1360,6 +1314,7 @@
 
         fetchNamespace();
         loadReelData();
+  checkBackend();
       };
 
       const verifySession = async () => {
@@ -1381,6 +1336,7 @@
         localStorage.removeItem('overdrive_token');
         localStorage.removeItem('overdrive_user');
         localStorage.removeItem('overdrive_namespace');
+        apiStatus.value = 'idle';
         if (!window.location.hash) {
           isLandingDefault.value = true;
         }
@@ -1495,20 +1451,6 @@
         }
       };
 
-      const loadSampleReel = () => {
-        isLandingDefault.value = false;
-        portfolioTitle.value = 'Sample Overdrive Reel';
-        items.value = [
-          {
-            title: "Welcome to mdb-overdrive",
-            summary: "Integrated with m-stash browser identity & resource routing.",
-            url: "",
-            type: "card"
-          }
-        ];
-        currentIndex.value = 0;
-      };
-
       const resetToHome = () => {
         window.location.hash = '';
         routeHash.value = '';
@@ -1616,7 +1558,6 @@
         openShareModal,
         copyShareLink,
         copyEmbedSnippet,
-        loadSampleReel,
         resetToHome
       };
     }

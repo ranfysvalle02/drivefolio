@@ -29,6 +29,17 @@ To bridge this exact gap, we built **[m-stash](https://github.com/ranfysvalle02/
 - **Dynamic Namespaces:** Anyone can claim a `#namespace` (e.g., `mdb-overdrive.vercel.app/#motion-reel`), organize slides, and share an interactive presentation in seconds.
 - **Native MongoDB Atlas Backend:** The entire frontend is an ultra-fast, single-file Vue 3 application that writes and reads presentation metadata straight from MongoDB Atlas via `m-stash`.
 
+### Build the production stylesheet
+
+The static client uses a generated Tailwind stylesheet rather than the browser CDN compiler. Run this before deploying changes:
+
+```bash
+npm install
+npm run build:css
+```
+
+The deployed client targets `https://m-stash.onrender.com` by default. The Gateway Diagnostics panel can override that origin locally for a different m-stash deployment.
+
 ---
 
 ## 3. Enter m-stash: The Friction-Free Bridge to MongoDB Atlas
