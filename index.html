@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>mdb-overdrive — High-Octane Cloud Reel Showcase</title>
+  <title>mdb-overdrive — Share your work from Google Drive</title>
   
   <link rel="stylesheet" href="./tailwind.css">
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
@@ -43,18 +43,6 @@
 <body class="bg-neutral-950 text-neutral-100 min-h-screen flex flex-col selection:bg-cyan-400 selection:text-black antialiased">
   <div id="app" class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
     
-    <!-- Top Announcement Bar -->
-    <div class="bg-gradient-to-r from-cyan-950/90 via-blue-950/90 to-purple-950/90 border-b border-cyan-800/40 px-3 py-1.5 text-xs text-center text-cyan-200 flex items-center justify-center gap-2 flex-wrap z-50">
-      <span class="bg-cyan-500/25 text-cyan-300 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border border-cyan-500/40 uppercase tracking-wider flex items-center gap-1">
-        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-        Drive to reel
-      </span>
-      <span class="font-medium">Turn a Google Drive link into a shareable reel.</span>
-      <button @click="mStashModalOpen = true" class="text-cyan-400 hover:text-cyan-200 font-semibold underline transition">
-        How it works
-      </button>
-    </div>
-
     <!-- Main Navigation Header -->
     <header class="border-b border-neutral-800/80 bg-neutral-900/75 backdrop-blur-xl sticky top-0 z-40 px-4 py-3">
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 sm:gap-4">
@@ -81,42 +69,8 @@
           </div>
         </div>
 
-        <!-- System Controls, Diagnostics & Auth -->
+        <!-- Reel Controls & Auth -->
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-          
-          <!-- m-stash Discovery Button -->
-          <button @click="mStashModalOpen = true" class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-800/60 text-xs font-semibold text-cyan-300 transition hover:border-cyan-500">
-            <svg class="w-3.5 h-3.5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-            <span>How it works</span>
-          </button>
-
-          <!-- Gateway Diagnostics -->
-          <div v-if="user" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900/90 border border-neutral-800 text-xs font-mono">
-            <button @click="endpointModalOpen = true" class="text-neutral-400 hover:text-cyan-400 flex items-center gap-1 transition" title="Diagnostics & API settings">
-              <span>Gateway:</span>
-              <svg class="w-3 h-3 text-neutral-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-              </svg>
-            </button>
-            <span v-if="apiStatus === 'online'" class="flex items-center gap-1 text-emerald-400 font-semibold cursor-pointer" @click="checkBackend">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>Live</span>
-            </span>
-            <button v-else-if="apiStatus === 'offline'" @click="endpointModalOpen = true" class="flex items-center gap-1 text-amber-400 hover:text-amber-300 font-semibold">
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              <span>Offline / Idle</span>
-            </button>
-            <span v-else-if="apiStatus === 'idle'" class="text-neutral-400 font-semibold flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full bg-neutral-500"></span>
-              <span>Sign in to verify</span>
-            </span>
-            <span v-else class="text-cyan-400 font-semibold flex items-center gap-1">
-              <span class="animate-spin w-2.5 h-2.5 border border-cyan-400 border-t-transparent rounded-full"></span>
-              <span>Connecting</span>
-            </span>
-          </div>
 
           <!-- User session / Auth Trigger -->
           <div v-if="user" class="flex items-center gap-2 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-xl">
@@ -131,12 +85,12 @@
               </svg>
             </button>
           </div>
-          <button v-else @click="authModalOpen = true" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition">
-            Start a reel
+          <button v-else @click="authMode = 'login'; authError = ''; authModalOpen = true" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition">
+            Sign in
           </button>
 
           <!-- Share Button -->
-          <button v-if="user || totalItems > 0" @click="openShareModal" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-cyan-300 border border-neutral-700 hover:border-cyan-500/50 transition">
+          <button v-if="!demoMode && (user || totalItems > 0)" @click="openShareModal" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-cyan-300 border border-neutral-700 hover:border-cyan-500/50 transition">
             <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
             </svg>
@@ -157,7 +111,7 @@
     <main class="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 max-w-6xl w-full mx-auto relative z-10">
       
       <!-- DEFAULT STATE: Unauthenticated & No active reel -> Onboarding & Auth Shell -->
-      <div v-if="!user && (!items || items.length === 0 || isLandingDefault)" class="w-full max-w-xl my-6">
+      <div v-if="!user && !routeUsername && !demoMode" class="w-full max-w-xl my-6">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden glow-cyan">
           
           <div class="text-center mb-6">
@@ -171,7 +125,16 @@
             <p class="text-xs sm:text-sm text-neutral-400 mt-2 max-w-md mx-auto">
               Create a clean, shareable reel from your videos, decks, and PDFs. Nothing to upload.
             </p>
+            <div class="mt-4 flex items-center justify-center gap-3 text-[11px] text-neutral-500">
+              <span>One link</span><span>&bull;</span><span>No file uploads</span><span>&bull;</span><span>Update anytime</span>
+            </div>
           </div>
+
+          <button v-if="user" @click="endpointModalOpen = true" title="API settings" aria-label="API settings" class="w-9 h-9 grid place-items-center rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-500 hover:text-cyan-400 hover:border-neutral-700 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+            </svg>
+          </button>
 
           <!-- Auth Mode Switcher -->
           <div class="flex bg-neutral-950 p-1 rounded-xl mb-5 border border-neutral-800">
@@ -245,7 +208,7 @@
 
             <button 
               type="submit" 
-              :disabled="authLoading || !!usernameHelpIssue || !acceptedPrivacy"
+              :disabled="authLoading || !!usernameHelpIssue"
               class="w-full py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span v-if="authLoading" class="animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
@@ -291,11 +254,34 @@
             </button>
           </form>
 
+          <div class="mt-5 border-t border-neutral-800 pt-5 text-center">
+            <button type="button" @click="openDemo" class="text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition">
+              Watch a working sample reel
+            </button>
+          </div>
+
         </div>
       </div>
 
       <!-- SHOWCASE / WORKSPACE MODE -->
       <div v-else class="w-full">
+        <div v-if="publicLoadState === 'loading'" class="min-h-[55vh] flex items-center justify-center text-center">
+          <div>
+            <span class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></span>
+            <p class="mt-3 text-sm text-neutral-400">Loading reel...</p>
+          </div>
+        </div>
+
+        <div v-else-if="publicLoadState === 'error'" class="min-h-[55vh] flex items-center justify-center text-center">
+          <div class="max-w-md">
+            <p class="text-xs font-bold uppercase text-cyan-400">Reel unavailable</p>
+            <h1 class="mt-2 text-3xl font-black text-white">This link does not point to a public reel.</h1>
+            <p class="mt-3 text-sm text-neutral-400">{{ publicLoadError }}</p>
+            <button @click="resetToHome" class="mt-6 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-extrabold text-black hover:bg-cyan-300">Go home</button>
+          </div>
+        </div>
+
+        <template v-else>
         
         <!-- Reel Title & Sub-Bar Navigation -->
         <div class="w-full mb-4 flex items-center justify-between gap-4 flex-wrap">
@@ -311,7 +297,7 @@
           </div>
 
           <div class="flex items-center gap-2">
-            <button @click="openShareModal" class="px-3 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-800/80 text-cyan-300 hover:text-white hover:border-cyan-500 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+            <button v-if="!demoMode" @click="openShareModal" class="px-3 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-800/80 text-cyan-300 hover:text-white hover:border-cyan-500 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
               <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
               </svg>
@@ -398,9 +384,9 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
           </div>
-          <h3 class="text-base font-semibold text-white">No items in /{{ activeNamespaceSlug }}</h3>
-          <p class="text-xs text-neutral-400 max-w-sm mt-1 mb-4">Paste any public Google Drive URL to publish your first cloud slide.</p>
-          <button @click="openAddModal" class="px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-bold transition flex items-center gap-1.5">
+          <h3 class="text-base font-semibold text-white">{{ user ? 'Your reel is ready for its first item.' : 'Nothing has been published here yet.' }}</h3>
+          <p class="text-xs text-neutral-400 max-w-sm mt-1 mb-4">{{ user ? 'Add a public Google Drive link to start your reel.' : 'Check back after the owner publishes their work.' }}</p>
+          <button v-if="user" @click="openAddModal" class="px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-bold transition flex items-center gap-1.5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
@@ -423,29 +409,7 @@
           ></button>
         </div>
 
-        <!-- Shared Resources & Namespace Info Footer Banner -->
-        <div class="mt-8 p-4 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2.5">
-            <div class="p-1.5 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-              </svg>
-            </div>
-            <div>
-              <span class="font-bold text-white">Active Namespace Route:</span>
-              <code class="text-cyan-300 font-mono ml-1">/{{ activeNamespaceSlug }}</code>
-              <span class="text-neutral-500 ml-2">({{ isNamespacePublic ? 'Public' : 'Private' }})</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-3">
-            <button @click="loadSharedData" class="text-neutral-400 hover:text-white font-mono text-[11px] underline">
-              Fetch Shared Resources &rarr;
-            </button>
-            <button @click="mStashModalOpen = true" class="text-cyan-400 hover:text-cyan-300 font-mono font-bold underline">
-              Explore API Specs &rarr;
-            </button>
-          </div>
-        </div>
+        </template>
       </div>
     </main>
 
@@ -513,6 +477,10 @@
                 {{ usernameHelpText }}
               </p>
             </div>
+
+            <p v-if="authMode === 'signup'" class="text-[11px] text-neutral-500">
+              Your files stay in Google Drive. <button type="button" @click="privacyModalOpen = true" class="text-cyan-400 hover:text-cyan-300 underline">Privacy details</button>
+            </p>
 
             <div v-if="authError" class="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs">
               {{ authError }}
@@ -654,10 +622,10 @@
             </div>
 
             <button 
-              @click="privacyModalOpen = false; acceptedPrivacy = true"
+              @click="privacyModalOpen = false"
               class="w-full mt-2 py-2.5 bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold rounded-xl transition"
             >
-              Understand &amp; Accept
+              Close
             </button>
           </div>
         </div>
@@ -683,18 +651,7 @@
 
           <form @submit.prevent="handleSaveResource" class="space-y-3.5">
             <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Target Slug / Route</label>
-              <input 
-                type="text" 
-                required 
-                placeholder="main"
-                v-model="newSlug"
-                class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-sm text-white focus:border-cyan-400 outline-none font-mono"
-              >
-            </div>
-
-            <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Reel Showcase Title</label>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Reel title</label>
               <input 
                 type="text" 
                 placeholder="e.g. Commercial Media Reel"
@@ -704,7 +661,7 @@
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Item Slide Title</label>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Item title</label>
               <input 
                 type="text" 
                 required 
@@ -726,17 +683,6 @@
               <p class="text-[10px] text-neutral-500 mt-1">
                 Paste a public Drive link and we will prepare it to play in your reel.
               </p>
-            </div>
-
-            <div class="pt-1">
-              <label class="flex items-center gap-2 cursor-pointer text-xs text-neutral-300">
-                <input 
-                  type="checkbox" 
-                  v-model="isPublic"
-                  class="rounded bg-neutral-950 border-neutral-800 text-cyan-400 focus:ring-0"
-                >
-                <span>Anyone with your reel link can view this item</span>
-              </label>
             </div>
 
             <div v-if="saveError" class="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-xs">
@@ -892,7 +838,7 @@
                 <span>3. Share when you are ready</span>
               </h3>
               <p class="text-neutral-300 leading-relaxed">
-                Your reel has one clean link, so clients and collaborators always see the latest version. You stay in control of what is public.
+                Your reel has one clean link, so clients and collaborators always see the latest version. Only the links you add appear there.
               </p>
             </div>
 
@@ -907,10 +853,6 @@
         <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
           <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
           <span class="font-bold text-neutral-300">mdb-overdrive</span>
-          <span>&bull;</span>
-          <button @click="mStashModalOpen = true" class="text-cyan-400 hover:text-cyan-300 underline font-mono">
-            How it works
-          </button>
         </div>
         <div class="flex items-center gap-4 font-mono text-[11px] text-neutral-400 flex-wrap justify-center sm:justify-end">
           <button @click="mStashModalOpen = true" class="hover:text-cyan-400 transition underline">
@@ -1012,9 +954,8 @@
         if (ns) storedNamespace = JSON.parse(ns);
       } catch (e) {}
 
-      const user = ref(storedUser);
-      const userNamespace = ref(storedNamespace);
-      const acceptedPrivacy = ref(true);
+      const user = ref(token.value ? storedUser : null);
+      const userNamespace = ref(token.value ? storedNamespace : null);
 
       const authMode = ref('signup');
       const emailInput = ref('');
@@ -1026,11 +967,15 @@
       const authLoading = ref(false);
 
       // Workspace & Reel State
-      const routeHash = ref(window.location.hash.replace('#', ''));
+      const routeHash = ref(window.location.hash.replace(/^#\/?/, ''));
       const isLandingDefault = ref(!routeHash.value && !user.value);
+      const demoMode = ref(false);
       const portfolioTitle = ref('Reel Showcase');
       const items = ref([]);
       const currentIndex = ref(0);
+      const currentReelSlug = ref('main');
+      const publicLoadState = ref(routeHash.value ? 'loading' : 'idle');
+      const publicLoadError = ref('');
       const apiStatus = ref('checking');
       const responseLog = ref('Ready.');
 
@@ -1039,7 +984,6 @@
       const newTitle = ref('');
       const newItemTitle = ref('');
       const newUrl = ref('');
-      const isPublic = ref(true);
       const saveLoading = ref(false);
       const saveError = ref('');
 
@@ -1056,10 +1000,14 @@
         }
       });
 
+      const routeUsername = computed(() => routeHash.value.split('/').filter(Boolean)[0] || '');
+      const routeReelSlug = computed(() => routeHash.value.split('/').filter(Boolean)[1] || 'main');
+
       const activeNamespaceSlug = computed(() => {
-        if (routeHash.value) return routeHash.value;
+        if (demoMode.value) return 'sample';
+        if (routeUsername.value) return routeUsername.value;
         if (userNamespace.value && userNamespace.value.slug) return userNamespace.value.slug;
-        return 'demo';
+        return 'your-name';
       });
 
       const isNamespacePublic = computed(() => {
@@ -1076,7 +1024,8 @@
       // Computed Share Links
       const shareUrl = computed(() => {
         const base = window.location.origin + window.location.pathname;
-        return `${base}#${activeNamespaceSlug.value}`;
+        const suffix = currentReelSlug.value === 'main' ? '' : `/${currentReelSlug.value}`;
+        return `${base}#/${activeNamespaceSlug.value}${suffix}`;
       });
 
       const twitterShareUrl = computed(() => {
@@ -1190,33 +1139,46 @@
         }
       };
 
-      // Load Reel Resources
-      const loadReelData = async (slugTarget) => {
-        const target = slugTarget || activeNamespaceSlug.value;
-        try {
-          // Attempt 1: Fetch user's own resources if authenticated
-          if (token.value) {
-            try {
-              const myRes = await apiRequest('/v1/me/resources/reel');
-              const list = myRes.data || myRes;
-              if (Array.isArray(list) && list.length > 0) {
-                const match = list.find(r => r.slug === 'main' || r.slug === target) || list[0];
-                parseAndApplyResource(match);
-                return;
-              }
-            } catch (e) {}
-          }
+      // Load the owner's canonical reel or a public reel from a shared URL.
+      const loadReelData = async () => {
+        items.value = [];
+        publicLoadError.value = '';
 
-          // Attempt 2: Fetch shared resources
-          const sharedRes = await apiRequest(`/v1/shared/resources/reel?limit=20`, { authenticated: false });
-          const list = sharedRes.data || [];
-          if (Array.isArray(list) && list.length > 0) {
-            const match = list.find(r => r.slug === target || r.title.toLowerCase().includes(target)) || list[0];
-            parseAndApplyResource(match);
-            return;
+        if (routeUsername.value) {
+          publicLoadState.value = 'loading';
+          currentReelSlug.value = routeReelSlug.value;
+          try {
+            const response = await apiRequest(
+              `/v1/public/${encodeURIComponent(routeUsername.value)}/reel/${encodeURIComponent(routeReelSlug.value)}`,
+              { authenticated: false }
+            );
+            parseAndApplyResource(response.data);
+            publicLoadState.value = 'loaded';
+            return true;
+          } catch (error) {
+            publicLoadError.value = error.status === 404
+              ? 'Check the address or ask the owner to publish this reel.'
+              : error.message || 'The reel could not be loaded.';
+            publicLoadState.value = 'error';
+            return false;
           }
-        } catch (err) {
-          console.warn('Reel data fetch fallback:', err);
+        }
+
+        publicLoadState.value = 'idle';
+        if (!token.value) return false;
+        try {
+          const collection = await apiRequest('/v1/me/resources/reel?limit=20');
+          const exists = Array.isArray(collection.data)
+            && collection.data.some((resource) => resource.slug === 'main');
+          if (!exists) return false;
+
+          const response = await apiRequest('/v1/me/resources/reel/main');
+          currentReelSlug.value = 'main';
+          parseAndApplyResource(response.data);
+          return true;
+        } catch (error) {
+          if (error.status !== 404) console.warn('Could not load your reel:', error);
+          return false;
         }
       };
 
@@ -1245,17 +1207,6 @@
         }
       };
 
-      const loadSharedData = async () => {
-        try {
-          const res = await apiRequest('/v1/shared/resources/reel?limit=20', { authenticated: !!token.value });
-          if (res.data && res.data.length > 0) {
-            parseAndApplyResource(res.data[0]);
-          }
-        } catch (e) {
-          console.warn('Shared data fetch error:', e);
-        }
-      };
-
       // Auth Handlers (Signup / Login)
       const handleAuthSubmit = async () => {
         authLoading.value = true;
@@ -1276,7 +1227,7 @@
               }
             });
 
-            adoptSession(payload);
+            await adoptSession(payload);
           } else {
             const payload = await apiRequest('/v1/auth/login', {
               method: 'POST',
@@ -1287,7 +1238,7 @@
               }
             });
 
-            adoptSession(payload);
+            await adoptSession(payload);
           }
 
           authModalOpen.value = false;
@@ -1295,13 +1246,15 @@
           emailInput.value = '';
           passwordInput.value = '';
         } catch (err) {
-          authError.value = err.message || 'Authentication failed.';
+          authError.value = err.status === 409
+            ? 'That email or reel address is already in use. Log in if it is yours, or choose another address.'
+            : err.message || 'Authentication failed.';
         } finally {
           authLoading.value = false;
         }
       };
 
-      const adoptSession = (payload) => {
+      const adoptSession = async (payload) => {
         token.value = payload.token;
         user.value = payload.user || { email: emailInput.value, role: 'user' };
         userNamespace.value = payload.namespace || null;
@@ -1312,9 +1265,10 @@
           localStorage.setItem('overdrive_namespace', JSON.stringify(payload.namespace));
         }
 
-        fetchNamespace();
-        loadReelData();
-  checkBackend();
+          await fetchNamespace();
+          const hasReel = await loadReelData();
+          await checkBackend();
+          if (!hasReel) openAddModal();
       };
 
       const verifySession = async () => {
@@ -1324,8 +1278,11 @@
             user.value = { ...user.value, ...payload.claims };
             localStorage.setItem('overdrive_user', JSON.stringify(user.value));
           }
+          return true;
         } catch (err) {
           console.warn('Verify session error:', err);
+          if (err.status === 401 || err.status === 403) logout();
+          return false;
         }
       };
 
@@ -1358,7 +1315,8 @@
         saveError.value = '';
 
         const formattedUrl = formatDrivePreviewUrl(newUrl.value);
-        const slug = (newSlug.value || 'main').trim().toLowerCase().replace(/\s+/g, '-');
+        const slug = 'main';
+        const wasEmpty = items.value.length === 0;
 
         const newItem = {
           title: newItemTitle.value || 'Drive Resource',
@@ -1375,7 +1333,7 @@
           title: newTitle.value || `Reel Showcase /${slug}`,
           summary: `mdb-overdrive showcase deck for /${activeNamespaceSlug.value}`,
           content: JSON.stringify({ items: updatedItems }),
-          visibility: isPublic.value ? 'public' : 'private'
+          visibility: 'public'
         };
 
         try {
@@ -1402,13 +1360,19 @@
             }
           }
 
-          items.value = updatedItems;
-          portfolioTitle.value = resourcePayload.title;
+          const verified = await apiRequest(`/v1/me/resources/reel/${encodeURIComponent(slug)}`);
+          if (!verified.data) throw new Error('The gateway accepted the write but could not read it back. Please try again.');
+
+          parseAndApplyResource(verified.data);
+          currentReelSlug.value = slug;
           currentIndex.value = updatedItems.length - 1;
 
           addModalOpen.value = false;
           newUrl.value = '';
           newItemTitle.value = '';
+          if (wasEmpty) {
+            shareModalOpen.value = true;
+          }
         } catch (err) {
           saveError.value = err.message || 'Error saving resource.';
         } finally {
@@ -1429,9 +1393,20 @@
 
       const openShareModal = () => {
         shareModalOpen.value = true;
-        copyTextToClipboard(shareUrl.value);
-        copiedShare.value = true;
-        setTimeout(() => copiedShare.value = false, 2500);
+      };
+
+      const openDemo = () => {
+        demoMode.value = true;
+        publicLoadState.value = 'loaded';
+        portfolioTitle.value = 'Sample Reel';
+        currentReelSlug.value = 'main';
+        currentIndex.value = 0;
+        items.value = [{
+          title: 'Launch Film',
+          url: 'https://drive.google.com/file/d/1P8V_OjC9A494KiRm7XihKAvpfKsM3eN0/preview',
+          type: 'drive',
+          summary: 'A public Google Drive video embedded in the reel player.'
+        }];
       };
 
       const copyShareLink = async () => {
@@ -1454,8 +1429,11 @@
       const resetToHome = () => {
         window.location.hash = '';
         routeHash.value = '';
+        demoMode.value = false;
         if (!user.value) {
           isLandingDefault.value = true;
+          items.value = [];
+          portfolioTitle.value = 'Reel Showcase';
         }
       };
 
@@ -1466,20 +1444,23 @@
         if (e.key === 'ArrowLeft') prevSlide();
       };
 
-      onMounted(() => {
-        checkBackend();
+      onMounted(async () => {
         window.addEventListener('keydown', handleKeyDown);
 
+        let hasValidSession = false;
         if (token.value) {
-          verifySession();
-          fetchNamespace();
+          hasValidSession = await verifySession();
+          if (hasValidSession) {
+            await fetchNamespace();
+            await checkBackend();
+          }
         }
 
         const hashVal = window.location.hash.replace('#', '');
         if (hashVal) {
           routeHash.value = hashVal;
           loadReelData(hashVal);
-        } else if (user.value) {
+        } else if (hasValidSession) {
           loadReelData();
         }
 
@@ -1504,7 +1485,6 @@
         shareModalOpen,
         addModalOpen,
         authModalOpen,
-        acceptedPrivacy,
         token,
         user,
         userNamespace,
@@ -1519,6 +1499,10 @@
         authError,
         authLoading,
         isLandingDefault,
+        demoMode,
+        routeUsername,
+        publicLoadState,
+        publicLoadError,
         portfolioTitle,
         items,
         safeItems,
@@ -1531,7 +1515,6 @@
         newTitle,
         newItemTitle,
         newUrl,
-        isPublic,
         saveLoading,
         saveError,
         copiedShare,
@@ -1552,10 +1535,10 @@
         logout,
         openAddModal,
         handleSaveResource,
-        loadSharedData,
         nextSlide,
         prevSlide,
         openShareModal,
+        openDemo,
         copyShareLink,
         copyEmbedSnippet,
         resetToHome
