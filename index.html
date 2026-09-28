@@ -459,16 +459,26 @@
         </div>
 
         <div v-else-if="overdrives.length" class="border-t border-neutral-800">
-          <button v-for="overdrive in overdrives" :key="overdrive.slug" @click="openOverdrive(overdrive.slug)" class="group flex w-full items-center justify-between gap-5 border-b border-neutral-800 px-1 py-5 text-left transition-colors hover:bg-neutral-900/60 sm:px-4">
-            <div class="min-w-0">
-              <h2 class="truncate text-base font-bold text-white group-hover:text-cyan-300">{{ overdrive.title }}</h2>
-              <p class="mt-1 truncate font-mono text-[11px] text-neutral-500">/{{ activeNamespaceSlug }}/{{ overdrive.slug }}</p>
+          <div v-for="overdrive in overdrives" :key="overdrive.slug" class="group flex items-center gap-2 border-b border-neutral-800 transition-colors hover:bg-neutral-900/60 sm:px-3">
+            <button @click="openOverdrive(overdrive.slug)" class="flex min-w-0 flex-1 items-center justify-between gap-5 px-1 py-5 text-left sm:px-1">
+              <div class="min-w-0">
+                <h2 class="truncate text-base font-bold text-white group-hover:text-cyan-300">{{ overdrive.title }}</h2>
+                <p class="mt-1 truncate font-mono text-[11px] text-neutral-500">/{{ activeNamespaceSlug }}/{{ overdrive.slug }}</p>
+              </div>
+              <div class="flex shrink-0 items-center gap-3 text-xs text-neutral-400">
+                <span>{{ overdrive.itemCount }} {{ overdrive.itemCount === 1 ? 'item' : 'items' }}</span>
+                <span aria-hidden="true" class="text-neutral-600">&rarr;</span>
+              </div>
+            </button>
+            <div v-if="canManageCurrentOverdrive" class="flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
+              <button @click="openEditOverdrive(overdrive)" :aria-label="`Edit ${overdrive.title}`" title="Edit overdrive" class="grid h-9 w-9 place-items-center rounded-lg text-neutral-400 transition hover:bg-neutral-800 hover:text-cyan-300">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zM19.5 7.125L16.862 4.487M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+              </button>
+              <button @click="openDeleteOverdrive(overdrive)" :aria-label="`Delete ${overdrive.title}`" title="Delete overdrive" class="grid h-9 w-9 place-items-center rounded-lg text-neutral-500 transition hover:bg-rose-950 hover:text-rose-300">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673A2.25 2.25 0 0115.916 21H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+              </button>
             </div>
-            <div class="flex shrink-0 items-center gap-4 text-xs text-neutral-400">
-              <span>{{ overdrive.itemCount }} {{ overdrive.itemCount === 1 ? 'item' : 'items' }}</span>
-              <span aria-hidden="true" class="text-neutral-600">&rarr;</span>
-            </div>
-          </button>
+          </div>
         </div>
 
         <div v-else class="grid min-h-[45vh] place-items-center text-center">
@@ -515,6 +525,25 @@
               <span aria-hidden="true"> &bull; </span>
               <span class="font-mono text-cyan-400">/{{ activeNamespaceSlug }}/{{ currentReelSlug }}</span>
             </p>
+            <div v-if="canManageCurrentOverdrive" class="mt-2 flex flex-wrap items-center gap-1 text-[11px] font-bold">
+              <button v-if="currentItem" @click="openEditItem" class="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-neutral-300 transition hover:bg-neutral-800 hover:text-cyan-300" title="Edit current item">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zM19.5 7.125L16.862 4.487" /></svg>
+                <span>Edit item</span>
+              </button>
+              <button v-if="currentItem" @click="openDeleteItem" class="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-neutral-500 transition hover:bg-rose-950 hover:text-rose-300" title="Delete current item">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673A2.25 2.25 0 0115.916 21H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0H4.772m3.478-.397v-.916c0-1.18.91-2.164 2.09-2.201a51.964 51.964 0 013.32 0c1.18.037 2.09 1.022 2.09 2.201v.916" /></svg>
+                <span>Delete item</span>
+              </button>
+              <span v-if="currentItem" aria-hidden="true" class="mx-1 h-4 w-px bg-neutral-800"></span>
+              <button @click="openEditOverdrive()" class="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-neutral-400 transition hover:bg-neutral-800 hover:text-white" title="Edit overdrive">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                <span>Edit overdrive</span>
+              </button>
+              <button @click="openDeleteOverdrive()" class="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-neutral-500 transition hover:bg-rose-950 hover:text-rose-300" title="Delete overdrive">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21H4.772m3.478-.397v-.916c0-1.18.91-2.164 2.09-2.201a51.964 51.964 0 013.32 0c1.18.037 2.09 1.022 2.09 2.201v.916" /></svg>
+                <span>Delete overdrive</span>
+              </button>
+            </div>
           </div>
 
           <div v-if="totalItems > 1" class="flex shrink-0 items-center gap-1.5">
@@ -897,29 +926,28 @@
       </div>
     </transition>
 
-    <!-- Add Item / Resource Modal -->
+    <!-- Item / Overdrive Editor -->
     <transition name="fade">
-      <div v-if="addModalOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div v-if="addModalOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" :aria-label="resourceEditorTitle">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl relative">
           <div class="flex items-center justify-between mb-2">
             <h2 class="text-lg font-bold flex items-center gap-2 text-white">
               <svg class="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z" />
               </svg>
-              <span>{{ creatingOverdrive ? 'Create Overdrive' : 'Add Item' }}</span>
+              <span>{{ resourceEditorTitle }}</span>
             </h2>
-            <button @click="addModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
+            <button @click="addModalOpen = false" :disabled="saveLoading" aria-label="Close editor" class="text-neutral-500 hover:text-white transition text-lg disabled:opacity-40">&times;</button>
           </div>
-          <p class="text-xs text-neutral-400 mb-4">
-            {{ creatingOverdrive ? 'Start a new collection with its first media item.' : `Add another media item to /${currentReelSlug}.` }}
-          </p>
+          <p class="text-xs text-neutral-400 mb-4">{{ resourceEditorDescription }}</p>
 
           <form @submit.prevent="handleSaveResource" class="space-y-3.5">
             <div v-if="creatingOverdrive">
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Overdrive ID</label>
+              <label for="resource-slug" class="block text-xs font-semibold text-neutral-300 mb-1">Overdrive ID</label>
               <div class="flex items-center rounded-xl border border-neutral-800 bg-neutral-950 px-3 focus-within:border-cyan-400">
                 <span class="font-mono text-xs text-neutral-500">/{{ activeNamespaceSlug }}/</span>
                 <input
+                  id="resource-slug"
                   type="text"
                   required
                   maxlength="64"
@@ -932,19 +960,22 @@
               <p class="mt-1 text-[10px]" :class="newSlugIssue ? 'text-rose-400' : 'text-neutral-500'">{{ newSlugIssue || 'This becomes the permanent public URL.' }}</p>
             </div>
 
-            <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Overdrive title</label>
+            <div v-if="resourceEditorMode === 'create-overdrive' || resourceEditorMode === 'edit-overdrive'">
+              <label for="resource-title" class="block text-xs font-semibold text-neutral-300 mb-1">Overdrive title</label>
               <input 
+                id="resource-title"
                 type="text" 
+                required
                 placeholder="e.g. Client Launch"
                 v-model="newTitle"
                 class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-sm text-white focus:border-cyan-400 outline-none"
               >
             </div>
 
-            <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Item title</label>
+            <div v-if="resourceEditorMode !== 'edit-overdrive'">
+              <label for="item-title" class="block text-xs font-semibold text-neutral-300 mb-1">Item title</label>
               <input 
+                id="item-title"
                 type="text" 
                 required 
                 placeholder="e.g. Keynote Presentation Deck"
@@ -953,9 +984,10 @@
               >
             </div>
 
-            <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Media URL</label>
+            <div v-if="resourceEditorMode !== 'edit-overdrive'">
+              <label for="item-url" class="block text-xs font-semibold text-neutral-300 mb-1">Media URL</label>
               <input 
+                id="item-url"
                 type="url" 
                 required 
                 placeholder="https://drive.google.com/... or a direct media URL"
@@ -967,9 +999,9 @@
               </p>
             </div>
 
-            <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Media type</label>
-              <select v-model="newMediaType" class="w-full rounded-xl border border-neutral-800 bg-neutral-950 px-3 py-2 text-xs text-white outline-none transition focus:border-cyan-400">
+            <div v-if="resourceEditorMode !== 'edit-overdrive'">
+              <label for="item-media-type" class="block text-xs font-semibold text-neutral-300 mb-1">Media type</label>
+              <select id="item-media-type" v-model="newMediaType" class="w-full rounded-xl border border-neutral-800 bg-neutral-950 px-3 py-2 text-xs text-white outline-none transition focus:border-cyan-400">
                 <option value="auto">Auto detect</option>
                 <option value="drive">Google Drive</option>
                 <option value="youtube">YouTube</option>
@@ -990,6 +1022,7 @@
               <button 
                 type="button" 
                 @click="addModalOpen = false"
+                :disabled="saveLoading"
                 class="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-300 transition"
               >
                 Cancel
@@ -1000,10 +1033,42 @@
                 class="px-5 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
               >
                 <span v-if="saveLoading" class="animate-spin w-3 h-3 border-2 border-black border-t-transparent rounded-full"></span>
-                <span>{{ creatingOverdrive ? 'Create Overdrive' : 'Add Item' }}</span>
+                <span>{{ resourceEditorSubmitLabel }}</span>
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Item / Overdrive Delete Confirmation -->
+    <transition name="fade">
+      <div v-if="deleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title">
+        <div class="glass-panel w-full max-w-md rounded-2xl border border-rose-900 p-6 shadow-2xl">
+          <div class="mb-4 flex items-start gap-3">
+            <div class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-rose-900 bg-rose-950 text-rose-300">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.948 3.374H4.645c-1.73 0-2.813-1.874-1.948-3.374L10.052 3.38c.865-1.498 3.03-1.498 3.896 0l7.355 12.746zM12 15.75h.008v.008H12v-.008z" /></svg>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase text-rose-400">Permanent deletion</p>
+              <h2 id="delete-dialog-title" class="mt-1 text-xl font-black text-white">Delete {{ deleteTarget?.type === 'item' ? 'this item' : 'this overdrive' }}?</h2>
+            </div>
+          </div>
+          <p v-if="deleteTarget?.type === 'item'" class="text-sm leading-relaxed text-neutral-400">
+            <strong class="text-neutral-200">{{ deleteTarget.title }}</strong> will be removed from <span class="font-mono text-neutral-300">/{{ deleteTarget.slug }}</span>.
+            <span v-if="totalItems === 1"> The overdrive will remain available and become empty.</span>
+          </p>
+          <p v-else class="text-sm leading-relaxed text-neutral-400">
+            <span class="font-mono text-neutral-200">/{{ activeNamespaceSlug }}/{{ deleteTarget?.slug }}</span> and its {{ deleteTarget?.itemCount || 0 }} {{ deleteTarget?.itemCount === 1 ? 'item' : 'items' }} will be permanently removed. Its shared link will stop working.
+          </p>
+          <div v-if="deleteError" class="mt-4 rounded-lg border border-rose-800 bg-rose-950/50 px-3 py-2 text-xs text-rose-300">{{ deleteError }}</div>
+          <div class="mt-6 flex justify-end gap-2">
+            <button @click="deleteModalOpen = false" :disabled="deleteLoading" class="rounded-lg px-4 py-2 text-xs font-bold text-neutral-400 hover:text-white disabled:opacity-40">Cancel</button>
+            <button @click="confirmDelete" :disabled="deleteLoading" class="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 text-xs font-extrabold text-white hover:bg-rose-400 disabled:opacity-50">
+              <span v-if="deleteLoading" class="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+              <span>{{ deleteLoading ? 'Deleting...' : (deleteTarget?.type === 'item' ? 'Delete Item' : 'Delete Overdrive') }}</span>
+            </button>
+          </div>
         </div>
       </div>
     </transition>
@@ -1332,6 +1397,7 @@
       const adminJsonModalOpen = ref(false);
       const adminEditorModalOpen = ref(false);
       const adminDeleteModalOpen = ref(false);
+      const deleteModalOpen = ref(false);
 
       // Auth & Identity State
       const token = ref(localStorage.getItem('overdrive_token') || '');
@@ -1361,6 +1427,7 @@
       const isLandingDefault = ref(!routeHash.value && !user.value);
       const demoMode = ref(false);
       const portfolioTitle = ref('Untitled Overdrive');
+      const currentResource = ref(null);
       const items = ref([]);
       const overdrives = ref([]);
       const overdriveListState = ref('idle');
@@ -1393,15 +1460,20 @@
       const adminSaveError = ref('');
       const adminDeleting = ref(false);
 
-      // Add Resource Form
+      // Resource Editor
       const newSlug = ref('main');
-      const creatingOverdrive = ref(false);
+      const resourceEditorMode = ref('add-item');
+      const editorResource = ref(null);
+      const editingItemIndex = ref(-1);
       const newTitle = ref('');
       const newItemTitle = ref('');
       const newUrl = ref('');
       const newMediaType = ref('auto');
       const saveLoading = ref(false);
       const saveError = ref('');
+      const deleteTarget = ref(null);
+      const deleteLoading = ref(false);
+      const deleteError = ref('');
 
       // Copy Indicators
       const copiedShare = ref(false);
@@ -1427,6 +1499,25 @@
       const canManageCurrentOverdrive = computed(() => !!user.value && (
         !routeUsername.value || routeUsername.value === userNamespace.value?.slug
       ));
+      const creatingOverdrive = computed(() => resourceEditorMode.value === 'create-overdrive');
+      const resourceEditorTitle = computed(() => ({
+        'create-overdrive': 'Create Overdrive',
+        'edit-overdrive': 'Edit Overdrive',
+        'edit-item': 'Edit Item',
+        'add-item': 'Add Item'
+      }[resourceEditorMode.value]));
+      const resourceEditorDescription = computed(() => ({
+        'create-overdrive': 'Start a new collection with its first media item.',
+        'edit-overdrive': `Update the collection shown at /${activeNamespaceSlug.value}/${newSlug.value}.`,
+        'edit-item': `Update this item in /${currentReelSlug.value}.`,
+        'add-item': `Add another media item to /${currentReelSlug.value}.`
+      }[resourceEditorMode.value]));
+      const resourceEditorSubmitLabel = computed(() => ({
+        'create-overdrive': 'Create Overdrive',
+        'edit-overdrive': 'Save Changes',
+        'edit-item': 'Save Item',
+        'add-item': 'Add Item'
+      }[resourceEditorMode.value]));
       const newSlugIssue = computed(() => {
         if (!creatingOverdrive.value) return '';
         if (newSlug.value.length < 3 || newSlug.value.length > 64) return 'Use 3-64 characters.';
@@ -1784,7 +1875,7 @@
               : `/v1/me/resources/reel/${encodeURIComponent(preview.slug)}`;
             try {
               const response = await apiRequest(documentPath, { authenticated: !isPublicIndex });
-              return { ...preview, itemCount: resourceItems(response.data).length };
+              return { ...preview, ...(response.data || {}), itemCount: resourceItems(response.data).length };
             } catch {
               return { ...preview, itemCount: 0 };
             }
@@ -1801,6 +1892,7 @@
 
       // Load one shared overdrive, or list every overdrive under a username.
       const loadReelData = async () => {
+        currentResource.value = null;
         items.value = [];
         publicLoadError.value = '';
 
@@ -1833,6 +1925,7 @@
       const parseAndApplyResource = (resource) => {
         if (!resource) return;
         isLandingDefault.value = false;
+        currentResource.value = resource;
         portfolioTitle.value = resource.title || 'Untitled Overdrive';
 
         items.value = resourceItems(resource);
@@ -1951,21 +2044,69 @@
         } else if (showOverdriveIndex.value) {
           openCreateOverdrive();
         } else {
-          creatingOverdrive.value = false;
+          resourceEditorMode.value = 'add-item';
+          editingItemIndex.value = -1;
           newSlug.value = currentReelSlug.value;
-          newTitle.value = portfolioTitle.value !== 'Untitled Overdrive' ? portfolioTitle.value : '';
+          newTitle.value = portfolioTitle.value;
           newItemTitle.value = '';
           newUrl.value = '';
           newMediaType.value = 'auto';
+          editorResource.value = currentResource.value || {
+            slug: currentReelSlug.value,
+            title: portfolioTitle.value,
+            content: JSON.stringify({ items: safeItems.value }),
+            visibility: 'public'
+          };
           saveError.value = '';
           addModalOpen.value = true;
         }
       };
 
       const openCreateOverdrive = () => {
-        creatingOverdrive.value = true;
+        resourceEditorMode.value = 'create-overdrive';
+        editorResource.value = null;
+        editingItemIndex.value = -1;
         newSlug.value = '';
         newTitle.value = '';
+        newItemTitle.value = '';
+        newUrl.value = '';
+        newMediaType.value = 'auto';
+        saveError.value = '';
+        addModalOpen.value = true;
+      };
+
+      const openEditItem = () => {
+        const item = currentItem.value;
+        if (!item) return;
+        resourceEditorMode.value = 'edit-item';
+        editingItemIndex.value = currentIndex.value;
+        newSlug.value = currentReelSlug.value;
+        newTitle.value = portfolioTitle.value;
+        newItemTitle.value = item.title || '';
+        newUrl.value = item.url || '';
+        newMediaType.value = item.type || detectMediaType(item.url);
+        editorResource.value = currentResource.value || {
+          slug: currentReelSlug.value,
+          title: portfolioTitle.value,
+          content: JSON.stringify({ items: safeItems.value }),
+          visibility: 'public'
+        };
+        saveError.value = '';
+        addModalOpen.value = true;
+      };
+
+      const openEditOverdrive = (overdrive = null) => {
+        const resource = overdrive || currentResource.value || {
+          slug: currentReelSlug.value,
+          title: portfolioTitle.value,
+          content: JSON.stringify({ items: safeItems.value }),
+          visibility: 'public'
+        };
+        resourceEditorMode.value = 'edit-overdrive';
+        editorResource.value = resource;
+        editingItemIndex.value = -1;
+        newSlug.value = resource.slug;
+        newTitle.value = resource.title || '';
         newItemTitle.value = '';
         newUrl.value = '';
         newMediaType.value = 'auto';
@@ -1977,83 +2118,159 @@
         newSlug.value = newSlug.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
       };
 
-      // Save Resource Handler (POST /v1/me/resources/reel -> PUT on 409)
+      // Create or update one owned overdrive resource.
       const handleSaveResource = async () => {
         saveLoading.value = true;
         saveError.value = '';
 
-        const rawUrl = newUrl.value.trim();
-        const selectedMediaType = newMediaType.value === 'auto' ? detectMediaType(rawUrl) : newMediaType.value;
-        const formattedUrl = selectedMediaType === 'drive' ? formatDrivePreviewUrl(rawUrl) : rawUrl;
-        const slug = creatingOverdrive.value ? newSlug.value : currentReelSlug.value;
+        const slug = resourceEditorMode.value === 'edit-overdrive'
+          ? newSlug.value
+          : (creatingOverdrive.value ? newSlug.value : currentReelSlug.value);
         if (creatingOverdrive.value && newSlugIssue.value) {
           saveError.value = newSlugIssue.value;
           saveLoading.value = false;
           return;
         }
-        const wasEmpty = creatingOverdrive.value || items.value.length === 0;
 
-        const newItem = {
-          title: newItemTitle.value || 'Media item',
-          url: formattedUrl,
-          type: selectedMediaType,
-          summary: `Added to /${activeNamespaceSlug.value}/${slug}`
-        };
-
-        const currentList = creatingOverdrive.value ? [] : (Array.isArray(items.value) ? items.value : []);
-        const updatedItems = [...currentList, newItem];
+        const mode = resourceEditorMode.value;
+        const wasEmpty = creatingOverdrive.value || resourceItems(editorResource.value).length === 0;
+        let updatedItems = creatingOverdrive.value ? [] : resourceItems(editorResource.value);
+        if (mode !== 'edit-overdrive') {
+          const rawUrl = newUrl.value.trim();
+          const selectedMediaType = newMediaType.value === 'auto' ? detectMediaType(rawUrl) : newMediaType.value;
+          const formattedUrl = selectedMediaType === 'drive' ? formatDrivePreviewUrl(rawUrl) : rawUrl;
+          const existingItem = mode === 'edit-item' ? updatedItems[editingItemIndex.value] : null;
+          const nextItem = {
+            ...(existingItem || {}),
+            title: newItemTitle.value || 'Media item',
+            url: formattedUrl,
+            type: selectedMediaType,
+            summary: existingItem?.summary || `Added to /${activeNamespaceSlug.value}/${slug}`
+          };
+          if (mode === 'edit-item') {
+            updatedItems = updatedItems.map((item, index) => index === editingItemIndex.value ? nextItem : item);
+          } else {
+            updatedItems = [...updatedItems, nextItem];
+          }
+        }
 
         const resourcePayload = {
           slug,
           title: newTitle.value || `Overdrive /${slug}`,
-          summary: `mdb-overdrive collection for /${activeNamespaceSlug.value}/${slug}`,
+          summary: editorResource.value?.summary || `mdb-overdrive collection for /${activeNamespaceSlug.value}/${slug}`,
           content: JSON.stringify({ items: updatedItems }),
-          visibility: 'public'
+          visibility: editorResource.value?.visibility || 'public'
         };
 
         try {
-          // Attempt POST create
-          try {
+          if (creatingOverdrive.value) {
             await apiRequest('/v1/me/resources/reel', {
               method: 'POST',
               body: resourcePayload
             });
-          } catch (err) {
-            if (err.status === 409) {
-              // Resource exists; update via PUT
-              await apiRequest(`/v1/me/resources/reel/${encodeURIComponent(slug)}`, {
-                method: 'PUT',
-                body: {
-                  title: resourcePayload.title,
-                  summary: resourcePayload.summary,
-                  content: resourcePayload.content,
-                  visibility: resourcePayload.visibility
-                }
-              });
-            } else {
-              throw err;
-            }
+          } else {
+            await apiRequest(`/v1/me/resources/reel/${encodeURIComponent(slug)}`, {
+              method: 'PUT',
+              body: {
+                title: resourcePayload.title,
+                summary: resourcePayload.summary,
+                content: resourcePayload.content,
+                visibility: resourcePayload.visibility
+              }
+            });
           }
 
           const verified = await apiRequest(`/v1/me/resources/reel/${encodeURIComponent(slug)}`);
           if (!verified.data) throw new Error('The gateway accepted the write but could not read it back. Please try again.');
 
-          parseAndApplyResource(verified.data);
-          currentReelSlug.value = slug;
-          currentIndex.value = updatedItems.length - 1;
-          creatingOverdrive.value = false;
+          const editedFromIndex = mode === 'edit-overdrive' && showOverdriveIndex.value;
+          if (editedFromIndex) {
+            await loadOverdrives();
+          } else {
+            const nextIndex = mode === 'edit-item'
+              ? editingItemIndex.value
+              : (mode === 'edit-overdrive' ? currentIndex.value : updatedItems.length - 1);
+            parseAndApplyResource(verified.data);
+            currentReelSlug.value = slug;
+            currentIndex.value = Math.max(0, Math.min(nextIndex, updatedItems.length - 1));
+          }
 
           addModalOpen.value = false;
+          editorResource.value = null;
+          editingItemIndex.value = -1;
           newUrl.value = '';
           newItemTitle.value = '';
           newMediaType.value = 'auto';
-          if (wasEmpty) {
+          if (creatingOverdrive.value || (mode === 'add-item' && wasEmpty)) {
             shareModalOpen.value = true;
           }
         } catch (err) {
           saveError.value = err.message || 'Error saving resource.';
         } finally {
           saveLoading.value = false;
+        }
+      };
+
+      const openDeleteItem = () => {
+        if (!currentItem.value) return;
+        deleteTarget.value = {
+          type: 'item',
+          index: currentIndex.value,
+          title: currentItem.value.title || 'Untitled item',
+          slug: currentReelSlug.value
+        };
+        deleteError.value = '';
+        deleteModalOpen.value = true;
+      };
+
+      const openDeleteOverdrive = (overdrive = null) => {
+        deleteTarget.value = {
+          type: 'overdrive',
+          slug: overdrive?.slug || currentReelSlug.value,
+          title: overdrive?.title || portfolioTitle.value,
+          itemCount: overdrive?.itemCount ?? totalItems.value
+        };
+        deleteError.value = '';
+        deleteModalOpen.value = true;
+      };
+
+      const confirmDelete = async () => {
+        if (!deleteTarget.value) return;
+        deleteLoading.value = true;
+        deleteError.value = '';
+        try {
+          if (deleteTarget.value.type === 'item') {
+            const deletedIndex = deleteTarget.value.index;
+            const updatedItems = safeItems.value.filter((_, index) => index !== deletedIndex);
+            await apiRequest(`/v1/me/resources/reel/${encodeURIComponent(currentReelSlug.value)}`, {
+              method: 'PUT',
+              body: {
+                title: portfolioTitle.value,
+                summary: currentResource.value?.summary || `mdb-overdrive collection for /${activeNamespaceSlug.value}/${currentReelSlug.value}`,
+                content: JSON.stringify({ items: updatedItems }),
+                visibility: currentResource.value?.visibility || 'public'
+              }
+            });
+            const verified = await apiRequest(`/v1/me/resources/reel/${encodeURIComponent(currentReelSlug.value)}`);
+            if (!verified.data) throw new Error('The item was deleted but the overdrive could not be refreshed.');
+            parseAndApplyResource(verified.data);
+            currentIndex.value = Math.max(0, Math.min(deletedIndex, updatedItems.length - 1));
+          } else {
+            const deletedSlug = deleteTarget.value.slug;
+            await apiRequest(`/v1/me/resources/reel/${encodeURIComponent(deletedSlug)}`, { method: 'DELETE' });
+            if (showOverdriveIndex.value) {
+              await loadOverdrives();
+            } else {
+              isPlayerTheater.value = false;
+              goToOverdriveIndex();
+            }
+          }
+          deleteModalOpen.value = false;
+          deleteTarget.value = null;
+        } catch (error) {
+          deleteError.value = error.message || 'This could not be deleted. Please try again.';
+        } finally {
+          deleteLoading.value = false;
         }
       };
 
@@ -2154,8 +2371,10 @@
       // Keyboard Shortcuts
       const handleKeyDown = (e) => {
         if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
-        if (e.key === 'Escape' && isPlayerTheater.value) {
-          isPlayerTheater.value = false;
+        if (e.key === 'Escape') {
+          if (deleteModalOpen.value && !deleteLoading.value) deleteModalOpen.value = false;
+          else if (addModalOpen.value && !saveLoading.value) addModalOpen.value = false;
+          else if (isPlayerTheater.value) isPlayerTheater.value = false;
           return;
         }
         if (e.key === 'ArrowRight') nextSlide();
@@ -2197,6 +2416,7 @@
           if (newHash) {
             loadReelData(newHash);
           } else {
+            currentResource.value = null;
             items.value = [];
             if (showAdminConsole.value) loadAdminResources();
             else if (user.value) loadOverdrives();
@@ -2219,6 +2439,7 @@
         adminJsonModalOpen,
         adminEditorModalOpen,
         adminDeleteModalOpen,
+        deleteModalOpen,
         token,
         user,
         userNamespace,
@@ -2276,6 +2497,10 @@
         adminJsonText,
         newSlug,
         creatingOverdrive,
+        resourceEditorMode,
+        resourceEditorTitle,
+        resourceEditorDescription,
+        resourceEditorSubmitLabel,
         newSlugIssue,
         newTitle,
         newItemTitle,
@@ -2283,6 +2508,9 @@
         newMediaType,
         saveLoading,
         saveError,
+        deleteTarget,
+        deleteLoading,
+        deleteError,
         copiedShare,
         copiedEmbed,
         isPinging,
@@ -2302,6 +2530,11 @@
         logout,
         openAddModal,
         openCreateOverdrive,
+        openEditItem,
+        openEditOverdrive,
+        openDeleteItem,
+        openDeleteOverdrive,
+        confirmDelete,
         normalizeNewSlug,
         loadOverdrives,
         loadAdminResources,
