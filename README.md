@@ -22,7 +22,7 @@ To bridge this exact gap, we built **[m-stash](https://github.com/ranfysvalle02/
 
 ## 2. The Proof of Concept: mdb-overdrive
 
-**[mdb-overdrive](https://mdb-overdrive.vercel.app)** (source code hosted at [github.com/ranfysvalle02/mdb-overdrive](https://github.com/ranfysvalle02/mdb-overdrive), formerly known during initial prototyping as *drivefolio*) is a high-octane media showcase designed for creators, motion designers, developers, and agencies who need to present rich visual assets—4K reels, design portfolios, client PDFs, and presentation decks—with zero hosting overhead.
+**[mdb-overdrive](https://mdb-overdrive.vercel.app)** is a high-octane media showcase designed for creators, motion designers, developers, and agencies who need to present rich visual assets—4K reels, design portfolios, client PDFs, and presentation decks—with zero hosting overhead.
 
 ### How it Works:
 - **Zero File Ingestion:** Files never touch our application servers. Media streams directly through Google's official `/preview` sandbox iframe, offloading player UI rendering and heavy bandwidth onto Google's global CDN.
