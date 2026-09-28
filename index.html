@@ -78,13 +78,18 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
             </svg>
             <span class="text-xs text-neutral-200 font-mono max-w-[110px] truncate">{{ user.email }}</span>
-            <span class="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-1.5 py-0.2 rounded uppercase font-mono">{{ user.role || 'user' }}</span>
+            <span :class="isAdmin ? 'bg-amber-950 text-amber-300 border-amber-800' : 'bg-cyan-950 text-cyan-300 border-cyan-800'" class="text-[10px] border px-1.5 py-0.5 rounded uppercase font-mono">{{ user.role || 'user' }}</span>
             <button @click="logout" title="Sign out / Clear token" class="text-neutral-500 hover:text-rose-400 transition ml-0.5">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
               </svg>
             </button>
           </div>
+          <button v-if="user" @click="endpointModalOpen = true" title="Gateway diagnostics" aria-label="Gateway diagnostics" class="w-8 h-8 grid place-items-center rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-500 hover:text-cyan-400 hover:border-neutral-700 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+            </svg>
+          </button>
           <button v-else @click="authMode = 'login'; authError = ''; authModalOpen = true" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition">
             Sign in
           </button>
@@ -103,6 +108,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             <span>Add Item</span>
+          </button>
+          <button v-if="showAdminConsole" @click="openAdminEditor()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-300 hover:bg-amber-200 text-black text-xs font-extrabold transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span>New Record</span>
           </button>
         </div>
       </div>
@@ -259,6 +270,58 @@
           </div>
 
         </div>
+      </div>
+
+      <!-- ADMIN SHARED-DATA WORKSPACE -->
+      <div v-else-if="showAdminConsole" class="w-full self-start py-4 sm:py-7">
+        <div class="flex flex-col gap-5 border-b border-neutral-800 pb-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div class="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase text-amber-300">
+              <span class="h-2 w-2 rounded-full bg-amber-300"></span>
+              <span>Deployment administration</span>
+            </div>
+            <h1 class="text-3xl font-black text-white sm:text-4xl">Shared data console</h1>
+            <p class="mt-2 max-w-2xl text-sm text-neutral-400">Inspect and publish application-owned records. This scope is separate from personal creator namespaces.</p>
+          </div>
+          <form @submit.prevent="loadAdminResources" class="flex w-full max-w-md items-end gap-2">
+            <label class="min-w-0 flex-1 text-[11px] font-bold text-neutral-400">
+              RESOURCE BUCKET
+              <input v-model="adminType" @input="normalizeAdminType" required placeholder="reel" class="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 font-mono text-xs text-white outline-none focus:border-amber-300">
+            </label>
+            <button type="submit" class="h-9 rounded-lg border border-neutral-700 bg-neutral-800 px-4 text-xs font-bold text-neutral-200 hover:border-amber-300 hover:text-white">Load</button>
+          </form>
+        </div>
+
+        <div class="grid grid-cols-2 border-b border-neutral-800 sm:grid-cols-4">
+          <div class="border-r border-neutral-800 px-3 py-4 sm:px-5"><p class="text-[10px] font-bold uppercase text-neutral-500">Loaded</p><p class="mt-1 text-2xl font-black text-white">{{ adminResources.length }}</p></div>
+          <div class="border-r border-neutral-800 px-3 py-4 sm:px-5"><p class="text-[10px] font-bold uppercase text-neutral-500">Public</p><p class="mt-1 text-2xl font-black text-emerald-300">{{ adminVisibilityCounts.public }}</p></div>
+          <div class="border-r border-neutral-800 px-3 py-4 sm:px-5"><p class="text-[10px] font-bold uppercase text-neutral-500">Signed-in</p><p class="mt-1 text-2xl font-black text-cyan-300">{{ adminVisibilityCounts.authenticated }}</p></div>
+          <div class="px-3 py-4 sm:px-5"><p class="text-[10px] font-bold uppercase text-neutral-500">Gateway</p><p class="mt-2 flex items-center gap-2 text-xs font-bold" :class="apiStatus === 'online' ? 'text-emerald-300' : 'text-amber-300'"><span class="h-2 w-2 rounded-full" :class="apiStatus === 'online' ? 'bg-emerald-300' : 'bg-amber-300'"></span>{{ apiStatus === 'online' ? 'Operational' : 'Check connection' }}</p></div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-800 py-4">
+          <div class="flex items-center gap-1 rounded-lg border border-neutral-800 bg-neutral-900 p-1">
+            <button v-for="option in ['all', 'public', 'authenticated', 'private']" :key="option" @click="adminVisibility = option" :class="adminVisibility === option ? 'bg-neutral-700 text-white' : 'text-neutral-500 hover:text-neutral-200'" class="rounded-md px-2.5 py-1.5 text-[10px] font-bold uppercase transition">{{ option }}</button>
+          </div>
+          <div class="flex items-center gap-3 text-[11px] text-neutral-500"><span class="font-mono">/{{ sharedNamespace?.slug || 'shared' }}/{{ adminType }}</span><button @click="loadAdminResources" class="font-bold text-cyan-400 hover:text-cyan-300">Refresh</button></div>
+        </div>
+
+        <div v-if="adminState === 'loading'" class="grid min-h-[32vh] place-items-center text-center"><div><span class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-amber-300 border-t-transparent"></span><p class="mt-3 text-xs text-neutral-400">Loading shared records...</p></div></div>
+        <div v-else-if="adminError" class="grid min-h-[32vh] place-items-center py-12 text-center"><div class="max-w-md"><p class="text-xs font-bold uppercase text-rose-400">Request failed</p><h2 class="mt-2 text-xl font-bold text-white">Shared data is unavailable.</h2><p class="mt-2 text-sm text-neutral-400">{{ adminError }}</p><div class="mt-5 flex justify-center gap-2"><button @click="loadAdminResources" class="rounded-lg bg-amber-300 px-4 py-2 text-xs font-bold text-black">Retry</button><button @click="endpointModalOpen = true" class="rounded-lg border border-neutral-700 px-4 py-2 text-xs font-bold text-neutral-200">View trace</button></div></div></div>
+        <div v-else-if="filteredAdminResources.length" class="overflow-x-auto">
+          <table class="w-full min-w-[760px] text-left">
+            <thead class="border-b border-neutral-800 text-[10px] uppercase text-neutral-500"><tr><th class="px-3 py-3 font-bold">Record</th><th class="px-3 py-3 font-bold">Visibility</th><th class="px-3 py-3 font-bold">Updated</th><th class="px-3 py-3 text-right font-bold">Actions</th></tr></thead>
+            <tbody class="divide-y divide-neutral-800">
+              <tr v-for="resource in filteredAdminResources" :key="resource.id || resource.slug" class="group hover:bg-neutral-900/60">
+                <td class="px-3 py-4"><button @click="inspectAdminResource(resource)" class="text-left"><span class="block text-sm font-bold text-white group-hover:text-amber-200">{{ resource.title }}</span><span class="mt-1 block font-mono text-[11px] text-neutral-500">{{ adminType }}/{{ resource.slug }}</span></button></td>
+                <td class="px-3 py-4"><span :class="visibilityClass(resource.visibility)" class="inline-flex rounded border px-2 py-1 text-[10px] font-bold uppercase">{{ resource.visibility }}</span></td>
+                <td class="px-3 py-4 font-mono text-[11px] text-neutral-400">{{ formatAdminDate(resource.updatedAt) }}</td>
+                <td class="px-3 py-4"><div class="flex justify-end gap-1"><button @click="inspectAdminResource(resource)" title="Inspect JSON" class="rounded-md px-2.5 py-1.5 text-[11px] font-bold text-cyan-300 hover:bg-neutral-800">JSON</button><button @click="openAdminEditor(resource)" class="rounded-md px-2.5 py-1.5 text-[11px] font-bold text-neutral-300 hover:bg-neutral-800 hover:text-white">Edit</button><button @click="confirmDeleteAdminResource(resource)" class="rounded-md px-2.5 py-1.5 text-[11px] font-bold text-neutral-500 hover:bg-rose-950 hover:text-rose-300">Delete</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="grid min-h-[32vh] place-items-center py-12 text-center"><div class="max-w-md"><p class="font-mono text-xs text-amber-300">{{ adminType }}</p><h2 class="mt-2 text-xl font-bold text-white">No {{ adminVisibility === 'all' ? '' : adminVisibility }} records in this bucket.</h2><p class="mt-2 text-sm text-neutral-400">Create a deployment record or load another resource type.</p><button @click="openAdminEditor()" class="mt-5 rounded-lg bg-amber-300 px-4 py-2 text-xs font-extrabold text-black">Create Record</button></div></div>
       </div>
 
       <!-- OWNER / PUBLIC OVERDRIVE INDEX -->
@@ -778,6 +841,53 @@
       </div>
     </transition>
 
+    <!-- Admin Shared Record Editor -->
+    <transition name="fade">
+      <div v-if="adminEditorModalOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/85 p-4 backdrop-blur-sm">
+        <div class="glass-panel my-auto w-full max-w-2xl border border-neutral-700 p-5 shadow-2xl sm:p-6">
+          <div class="mb-5 flex items-start justify-between gap-4">
+            <div><p class="text-[10px] font-bold uppercase text-amber-300">Shared / {{ adminType }}</p><h2 class="mt-1 text-xl font-black text-white">{{ selectedAdminResource ? 'Edit record' : 'Create record' }}</h2></div>
+            <button @click="adminEditorModalOpen = false" aria-label="Close" class="text-xl text-neutral-500 hover:text-white">&times;</button>
+          </div>
+          <form @submit.prevent="saveAdminResource" class="space-y-4">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="text-xs font-bold text-neutral-300">Slug<input v-model="adminForm.slug" @input="normalizeAdminSlug" :disabled="!!selectedAdminResource" required minlength="3" maxlength="64" placeholder="release-notes" class="mt-1.5 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2.5 font-mono text-xs text-white outline-none focus:border-amber-300 disabled:text-neutral-500"></label>
+              <label class="text-xs font-bold text-neutral-300">Visibility<select v-model="adminForm.visibility" class="mt-1.5 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2.5 text-xs text-white outline-none focus:border-amber-300"><option value="private">Private</option><option value="authenticated">Authenticated users</option><option value="public">Public</option></select></label>
+            </div>
+            <label class="block text-xs font-bold text-neutral-300">Title<input v-model="adminForm.title" required maxlength="160" placeholder="Release notes" class="mt-1.5 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none focus:border-amber-300"></label>
+            <label class="block text-xs font-bold text-neutral-300">Summary<input v-model="adminForm.summary" maxlength="500" placeholder="Short description for index views" class="mt-1.5 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2.5 text-sm text-white outline-none focus:border-amber-300"></label>
+            <label class="block text-xs font-bold text-neutral-300">Content<textarea v-model="adminForm.content" rows="4" placeholder="Text, Markdown, or serialized application content" class="mt-1.5 w-full resize-y rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2.5 font-mono text-xs leading-relaxed text-white outline-none focus:border-amber-300"></textarea></label>
+            <label class="block text-xs font-bold text-neutral-300">Structured data (JSON object)<textarea v-model="adminForm.data" rows="5" spellcheck="false" class="mt-1.5 w-full resize-y rounded-lg border border-neutral-700 bg-black px-3 py-2.5 font-mono text-xs leading-relaxed text-cyan-200 outline-none focus:border-amber-300"></textarea></label>
+            <div v-if="adminSaveError" class="border border-rose-800 bg-rose-950/50 px-3 py-2 text-xs text-rose-300">{{ adminSaveError }}</div>
+            <div class="flex justify-end gap-2 border-t border-neutral-800 pt-4"><button type="button" @click="adminEditorModalOpen = false" class="rounded-lg px-4 py-2 text-xs font-bold text-neutral-400 hover:text-white">Cancel</button><button type="submit" :disabled="adminSaving" class="rounded-lg bg-amber-300 px-5 py-2 text-xs font-extrabold text-black hover:bg-amber-200 disabled:opacity-50">{{ adminSaving ? 'Saving...' : 'Save Record' }}</button></div>
+          </form>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Admin JSON Inspector -->
+    <transition name="fade">
+      <div v-if="adminJsonModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm">
+        <div class="glass-panel flex max-h-[88vh] w-full max-w-3xl flex-col border border-neutral-700 p-5 shadow-2xl sm:p-6">
+          <div class="mb-4 flex items-center justify-between gap-4"><div><p class="text-[10px] font-bold uppercase text-cyan-300">Raw gateway response</p><h2 class="mt-1 font-mono text-sm font-bold text-white">{{ adminType }}/{{ selectedAdminResource?.slug }}</h2></div><div class="flex items-center gap-2"><button @click="copyAdminJson" class="rounded-md border border-neutral-700 px-3 py-1.5 text-[11px] font-bold text-cyan-300 hover:border-cyan-500">Copy JSON</button><button @click="adminJsonModalOpen = false" aria-label="Close" class="text-xl text-neutral-500 hover:text-white">&times;</button></div></div>
+          <pre class="min-h-0 flex-1 overflow-auto border border-neutral-800 bg-black p-4 font-mono text-[11px] leading-relaxed text-cyan-200">{{ adminJsonText }}</pre>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Admin Delete Confirmation -->
+    <transition name="fade">
+      <div v-if="adminDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm">
+        <div class="glass-panel w-full max-w-md border border-rose-900 p-6 shadow-2xl">
+          <p class="text-[10px] font-bold uppercase text-rose-400">Destructive action</p>
+          <h2 class="mt-2 text-xl font-black text-white">Delete {{ selectedAdminResource?.slug }}?</h2>
+          <p class="mt-2 text-sm text-neutral-400">This permanently removes the shared record from the <span class="font-mono text-neutral-200">{{ adminType }}</span> bucket.</p>
+          <div v-if="adminSaveError" class="mt-4 border border-rose-800 bg-rose-950/50 px-3 py-2 text-xs text-rose-300">{{ adminSaveError }}</div>
+          <div class="mt-6 flex justify-end gap-2"><button @click="adminDeleteModalOpen = false" class="rounded-lg px-4 py-2 text-xs font-bold text-neutral-400 hover:text-white">Cancel</button><button @click="deleteAdminResource" :disabled="adminDeleting" class="rounded-lg bg-rose-500 px-4 py-2 text-xs font-extrabold text-white hover:bg-rose-400 disabled:opacity-50">{{ adminDeleting ? 'Deleting...' : 'Delete Record' }}</button></div>
+        </div>
+      </div>
+    </transition>
+
     <!-- Gateway Diagnostics & Log Inspector Modal -->
     <transition name="fade">
       <div v-if="endpointModalOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1009,6 +1119,9 @@
       const shareModalOpen = ref(false);
       const addModalOpen = ref(false);
       const authModalOpen = ref(false);
+      const adminJsonModalOpen = ref(false);
+      const adminEditorModalOpen = ref(false);
+      const adminDeleteModalOpen = ref(false);
 
       // Auth & Identity State
       const token = ref(localStorage.getItem('overdrive_token') || '');
@@ -1049,6 +1162,26 @@
       const apiStatus = ref('checking');
       const responseLog = ref('Ready.');
 
+      // Admin shared-data workspace
+      const sharedNamespace = ref(null);
+      const adminResources = ref([]);
+      const adminState = ref('idle');
+      const adminError = ref('');
+      const adminType = ref('reel');
+      const adminVisibility = ref('all');
+      const selectedAdminResource = ref(null);
+      const adminForm = ref({
+        slug: '',
+        title: '',
+        summary: '',
+        visibility: 'private',
+        content: '',
+        data: '{}'
+      });
+      const adminSaving = ref(false);
+      const adminSaveError = ref('');
+      const adminDeleting = ref(false);
+
       // Add Resource Form
       const newSlug = ref('main');
       const creatingOverdrive = ref(false);
@@ -1073,6 +1206,8 @@
 
       const routeUsername = computed(() => routeHash.value.split('/').filter(Boolean)[0] || '');
       const routeReelSlug = computed(() => routeHash.value.split('/').filter(Boolean)[1] || '');
+      const isAdmin = computed(() => user.value?.role === 'admin');
+      const showAdminConsole = computed(() => isAdmin.value && !routeUsername.value && !demoMode.value);
       const showOverdriveIndex = computed(() => !demoMode.value && (
         (user.value && !routeUsername.value) ||
         (routeUsername.value && !routeReelSlug.value)
@@ -1092,6 +1227,7 @@
         if (demoMode.value) return 'sample';
         if (routeUsername.value) return routeUsername.value;
         if (userNamespace.value && userNamespace.value.slug) return userNamespace.value.slug;
+        if (isAdmin.value) return sharedNamespace.value?.slug || 'shared';
         return 'your-name';
       });
 
@@ -1105,6 +1241,15 @@
         if (totalItems.value === 0) return null;
         return safeItems.value[currentIndex.value] || null;
       });
+      const filteredAdminResources = computed(() => {
+        if (adminVisibility.value === 'all') return adminResources.value;
+        return adminResources.value.filter((resource) => resource.visibility === adminVisibility.value);
+      });
+      const adminVisibilityCounts = computed(() => adminResources.value.reduce((counts, resource) => {
+        counts[resource.visibility] = (counts[resource.visibility] || 0) + 1;
+        return counts;
+      }, { private: 0, authenticated: 0, public: 0 }));
+      const adminJsonText = computed(() => JSON.stringify(selectedAdminResource.value, null, 2));
 
       // Computed Share Links
       const shareUrl = computed(() => {
@@ -1221,6 +1366,162 @@
         } catch (err) {
           console.warn('Could not fetch personal namespace:', err);
         }
+      };
+
+      const loadAdminResources = async () => {
+        if (!isAdmin.value) return false;
+        adminState.value = 'loading';
+        adminError.value = '';
+        try {
+          const [namespaceResponse, resourcesResponse] = await Promise.all([
+            apiRequest('/v1/shared/namespace'),
+            apiRequest(`/v1/shared/resources/${encodeURIComponent(adminType.value)}?limit=100`)
+          ]);
+          sharedNamespace.value = namespaceResponse.data || null;
+          adminResources.value = Array.isArray(resourcesResponse.data) ? resourcesResponse.data : [];
+          adminState.value = 'loaded';
+          return true;
+        } catch (error) {
+          adminResources.value = [];
+          adminError.value = error.message || 'Shared deployment data could not be loaded.';
+          adminState.value = 'error';
+          return false;
+        }
+      };
+
+      const fetchAdminResource = async (resource) => {
+        const response = await apiRequest(
+          `/v1/shared/resources/${encodeURIComponent(adminType.value)}/${encodeURIComponent(resource.slug)}`
+        );
+        return response.data;
+      };
+
+      const inspectAdminResource = async (resource) => {
+        adminSaveError.value = '';
+        try {
+          selectedAdminResource.value = await fetchAdminResource(resource);
+          adminJsonModalOpen.value = true;
+        } catch (error) {
+          adminError.value = error.message || 'The record could not be inspected.';
+        }
+      };
+
+      const openAdminEditor = async (resource = null) => {
+        adminSaveError.value = '';
+        selectedAdminResource.value = null;
+        if (resource) {
+          try {
+            const document = await fetchAdminResource(resource);
+            selectedAdminResource.value = document;
+            adminForm.value = {
+              slug: document.slug,
+              title: document.title || '',
+              summary: document.summary || '',
+              visibility: document.visibility || 'private',
+              content: document.content || '',
+              data: JSON.stringify(document.data || {}, null, 2)
+            };
+          } catch (error) {
+            adminError.value = error.message || 'The record could not be opened.';
+            return;
+          }
+        } else {
+          adminForm.value = {
+            slug: '',
+            title: '',
+            summary: '',
+            visibility: 'private',
+            content: '',
+            data: '{}'
+          };
+        }
+        adminEditorModalOpen.value = true;
+      };
+
+      const normalizeAdminSlug = () => {
+        adminForm.value.slug = adminForm.value.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+      };
+
+      const normalizeAdminType = () => {
+        adminType.value = adminType.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+      };
+
+      const formatAdminDate = (value) => {
+        if (!value) return 'Unknown';
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+      };
+
+      const visibilityClass = (visibility) => ({
+        public: 'border-emerald-800 bg-emerald-950 text-emerald-300',
+        authenticated: 'border-cyan-800 bg-cyan-950 text-cyan-300',
+        private: 'border-neutral-700 bg-neutral-900 text-neutral-400'
+      }[visibility] || 'border-neutral-700 text-neutral-400');
+
+      const saveAdminResource = async () => {
+        adminSaving.value = true;
+        adminSaveError.value = '';
+        try {
+          let data;
+          try {
+            data = JSON.parse(adminForm.value.data || '{}');
+          } catch {
+            throw new Error('Data JSON is not valid.');
+          }
+          if (!data || Array.isArray(data) || typeof data !== 'object') {
+            throw new Error('Data JSON must be an object.');
+          }
+
+          const payload = {
+            slug: adminForm.value.slug,
+            title: adminForm.value.title,
+            summary: adminForm.value.summary,
+            visibility: adminForm.value.visibility,
+            content: adminForm.value.content,
+            data
+          };
+          const existingSlug = selectedAdminResource.value?.slug;
+          const path = existingSlug
+            ? `/v1/shared/resources/${encodeURIComponent(adminType.value)}/${encodeURIComponent(existingSlug)}`
+            : `/v1/shared/resources/${encodeURIComponent(adminType.value)}`;
+          await apiRequest(path, { method: existingSlug ? 'PUT' : 'POST', body: payload });
+          adminEditorModalOpen.value = false;
+          await loadAdminResources();
+        } catch (error) {
+          adminSaveError.value = error.message || 'The shared record could not be saved.';
+        } finally {
+          adminSaving.value = false;
+        }
+      };
+
+      const confirmDeleteAdminResource = (resource) => {
+        adminSaveError.value = '';
+        selectedAdminResource.value = resource;
+        adminDeleteModalOpen.value = true;
+      };
+
+      const deleteAdminResource = async () => {
+        if (!selectedAdminResource.value) return;
+        adminDeleting.value = true;
+        adminSaveError.value = '';
+        try {
+          await apiRequest(
+            `/v1/shared/resources/${encodeURIComponent(adminType.value)}/${encodeURIComponent(selectedAdminResource.value.slug)}`,
+            { method: 'DELETE' }
+          );
+          adminDeleteModalOpen.value = false;
+          selectedAdminResource.value = null;
+          await loadAdminResources();
+        } catch (error) {
+          adminSaveError.value = error.message || 'The shared record could not be deleted.';
+        } finally {
+          adminDeleting.value = false;
+        }
+      };
+
+      const copyAdminJson = async () => {
+        if (!selectedAdminResource.value) return;
+        await copyTextToClipboard(JSON.stringify(selectedAdminResource.value, null, 2));
       };
 
       const resourceItems = (resource) => {
@@ -1367,9 +1668,14 @@
           localStorage.setItem('overdrive_namespace', JSON.stringify(payload.namespace));
         }
 
+        await verifySession();
+        if (isAdmin.value) {
+          await loadAdminResources();
+        } else {
           await fetchNamespace();
           await loadReelData();
-          await checkBackend();
+        }
+        await checkBackend();
       };
 
       const verifySession = async () => {
@@ -1587,7 +1893,8 @@
         if (token.value) {
           hasValidSession = await verifySession();
           if (hasValidSession) {
-            await fetchNamespace();
+            if (isAdmin.value) await loadAdminResources();
+            else await fetchNamespace();
             await checkBackend();
           }
         }
@@ -1597,7 +1904,7 @@
           routeHash.value = hashVal;
           loadReelData(hashVal);
         } else if (hasValidSession) {
-          loadOverdrives();
+          if (!isAdmin.value) loadOverdrives();
         }
 
         window.addEventListener('hashchange', () => {
@@ -1607,7 +1914,8 @@
             loadReelData(newHash);
           } else {
             items.value = [];
-            if (user.value) loadOverdrives();
+            if (isAdmin.value) loadAdminResources();
+            else if (user.value) loadOverdrives();
             else isLandingDefault.value = true;
           }
         });
@@ -1623,6 +1931,9 @@
         shareModalOpen,
         addModalOpen,
         authModalOpen,
+        adminJsonModalOpen,
+        adminEditorModalOpen,
+        adminDeleteModalOpen,
         token,
         user,
         userNamespace,
@@ -1638,6 +1949,8 @@
         authLoading,
         isLandingDefault,
         demoMode,
+        isAdmin,
+        showAdminConsole,
         showOverdriveIndex,
         canManageCurrentOverdrive,
         routeUsername,
@@ -1655,6 +1968,20 @@
         currentReelSlug,
         apiStatus,
         responseLog,
+        sharedNamespace,
+        adminResources,
+        filteredAdminResources,
+        adminVisibilityCounts,
+        adminState,
+        adminError,
+        adminType,
+        adminVisibility,
+        selectedAdminResource,
+        adminForm,
+        adminSaving,
+        adminSaveError,
+        adminDeleting,
+        adminJsonText,
         newSlug,
         creatingOverdrive,
         newSlugIssue,
@@ -1683,6 +2010,17 @@
         openCreateOverdrive,
         normalizeNewSlug,
         loadOverdrives,
+        loadAdminResources,
+        inspectAdminResource,
+        openAdminEditor,
+        normalizeAdminSlug,
+        normalizeAdminType,
+        formatAdminDate,
+        visibilityClass,
+        saveAdminResource,
+        confirmDeleteAdminResource,
+        deleteAdminResource,
+        copyAdminJson,
         handleSaveResource,
         nextSlide,
         prevSlide,
