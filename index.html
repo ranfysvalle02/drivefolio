@@ -49,8 +49,8 @@
         
         <!-- Brand & Namespace Info -->
         <div class="flex items-center gap-3">
-          <div @click="resetToHome" class="cursor-pointer bg-gradient-to-br from-cyan-400 via-teal-400 to-blue-600 p-2.5 rounded-xl text-black shadow-lg shadow-cyan-500/20 flex items-center justify-center transform hover:scale-105 active:scale-95 transition">
-            <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
+          <div @click="resetToHome" class="cursor-pointer bg-cyan-400 p-2.5 rounded-lg text-black flex items-center justify-center transition-colors hover:bg-cyan-300">
+            <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24" role="img" aria-label="mdb-overdrive">
               <path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z" />
             </svg>
           </div>
@@ -69,7 +69,7 @@
           </div>
         </div>
 
-        <!-- Reel Controls & Auth -->
+        <!-- Overdrive Controls & Auth -->
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
 
           <!-- User session / Auth Trigger -->
@@ -90,15 +90,15 @@
           </button>
 
           <!-- Share Button -->
-          <button v-if="!demoMode && (user || totalItems > 0)" @click="openShareModal" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-cyan-300 border border-neutral-700 hover:border-cyan-500/50 transition">
+          <button v-if="!showOverdriveIndex && !demoMode && (user || totalItems > 0)" @click="openShareModal" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-cyan-300 border border-neutral-700 hover:border-cyan-500/50 transition">
             <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
             </svg>
-            <span>Share Reel</span>
+            <span>Share Overdrive</span>
           </button>
 
-          <!-- Add Reel / Resource CTA -->
-          <button v-if="user" @click="openAddModal" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition shadow-lg shadow-cyan-500/20 active:scale-95">
+          <!-- Add Overdrive Item CTA -->
+          <button v-if="canManageCurrentOverdrive && !showOverdriveIndex" @click="openAddModal" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition shadow-lg shadow-cyan-500/20 active:scale-95">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
@@ -109,8 +109,6 @@
     </header>
 
     <main class="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 max-w-6xl w-full mx-auto relative z-10">
-      
-      <!-- DEFAULT STATE: Unauthenticated & No active reel -> Onboarding & Auth Shell -->
       <div v-if="!user && !routeUsername && !demoMode" class="w-full max-w-xl my-6">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden glow-cyan">
           
@@ -123,7 +121,7 @@
             </div>
             <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Make your Drive work look great.</h2>
             <p class="text-xs sm:text-sm text-neutral-400 mt-2 max-w-md mx-auto">
-              Create a clean, shareable reel from your videos, decks, and PDFs. Nothing to upload.
+              Create focused, shareable overdrives from your videos, decks, and PDFs. Nothing to upload.
             </p>
             <div class="mt-4 flex items-center justify-center gap-3 text-[11px] text-neutral-500">
               <span>One link</span><span>&bull;</span><span>No file uploads</span><span>&bull;</span><span>Update anytime</span>
@@ -143,7 +141,7 @@
               :class="authMode === 'signup' ? 'bg-neutral-800 text-white font-semibold shadow-sm' : 'text-neutral-400 hover:text-white'"
               class="flex-1 py-2 text-xs rounded-lg transition"
             >
-              Create a reel
+              Create an overdrive
             </button>
             <button 
               @click="authMode = 'login'; authError = ''"
@@ -181,7 +179,7 @@
 
             <div>
               <div class="flex items-center justify-between mb-1">
-                <label class="block text-xs font-semibold text-neutral-300">Your reel address</label>
+                <label class="block text-xs font-semibold text-neutral-300">Your public username</label>
                 <span class="text-[10px] font-mono text-cyan-400">/{{ usernameInput || 'your-name' }}</span>
               </div>
               <input 
@@ -212,7 +210,7 @@
               class="w-full py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span v-if="authLoading" class="animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
-              <span>Create my reel</span>
+              <span>Create my workspace</span>
             </button>
           </form>
 
@@ -256,10 +254,66 @@
 
           <div class="mt-5 border-t border-neutral-800 pt-5 text-center">
             <button type="button" @click="openDemo" class="text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition">
-              Watch a working sample reel
+              Open a sample overdrive
             </button>
           </div>
 
+        </div>
+      </div>
+
+      <!-- OWNER / PUBLIC OVERDRIVE INDEX -->
+      <div v-else-if="showOverdriveIndex" class="w-full self-start py-4 sm:py-8">
+        <div class="flex flex-wrap items-end justify-between gap-4 border-b border-neutral-800 pb-6">
+          <div>
+            <p class="font-mono text-xs text-cyan-400">/{{ activeNamespaceSlug }}</p>
+            <h1 class="mt-1 text-3xl sm:text-4xl font-black tracking-tight text-white">Overdrives</h1>
+            <p class="mt-2 max-w-xl text-sm text-neutral-400">
+              {{ user && !routeUsername ? 'Drive collections published from your namespace.' : `Public collections from ${activeNamespaceSlug}.` }}
+            </p>
+            <div v-if="overdriveListState === 'loaded'" class="mt-3 flex items-center gap-4 text-[11px] font-semibold text-neutral-500">
+              <span><strong class="text-neutral-200">{{ overdrives.length }}</strong> overdrives</span>
+              <span><strong class="text-neutral-200">{{ overdrives.reduce((sum, overdrive) => sum + overdrive.itemCount, 0) }}</strong> items</span>
+            </div>
+          </div>
+          <button v-if="user && !routeUsername" @click="openCreateOverdrive" class="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-4 py-2.5 text-xs font-extrabold text-black shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span>New Overdrive</span>
+          </button>
+        </div>
+
+        <div v-if="overdriveListState === 'loading'" class="grid min-h-[40vh] place-items-center text-center">
+          <div>
+            <span class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></span>
+            <p class="mt-3 text-sm text-neutral-400">Loading overdrives...</p>
+          </div>
+        </div>
+
+        <div v-else-if="overdriveListError" class="py-16 text-center">
+          <h2 class="text-xl font-bold text-white">Could not load these overdrives.</h2>
+          <p class="mt-2 text-sm text-neutral-400">{{ overdriveListError }}</p>
+          <button @click="loadOverdrives" class="mt-5 rounded-xl border border-neutral-700 px-4 py-2 text-xs font-bold text-neutral-200 hover:border-cyan-500">Try again</button>
+        </div>
+
+        <div v-else-if="overdrives.length" class="border-t border-neutral-800">
+          <button v-for="overdrive in overdrives" :key="overdrive.slug" @click="openOverdrive(overdrive.slug)" class="group flex w-full items-center justify-between gap-5 border-b border-neutral-800 px-1 py-5 text-left transition-colors hover:bg-neutral-900/60 sm:px-4">
+            <div class="min-w-0">
+              <h2 class="truncate text-base font-bold text-white group-hover:text-cyan-300">{{ overdrive.title }}</h2>
+              <p class="mt-1 truncate font-mono text-[11px] text-neutral-500">/{{ activeNamespaceSlug }}/{{ overdrive.slug }}</p>
+            </div>
+            <div class="flex shrink-0 items-center gap-4 text-xs text-neutral-400">
+              <span>{{ overdrive.itemCount }} {{ overdrive.itemCount === 1 ? 'item' : 'items' }}</span>
+              <span aria-hidden="true" class="text-neutral-600">&rarr;</span>
+            </div>
+          </button>
+        </div>
+
+        <div v-else class="grid min-h-[45vh] place-items-center text-center">
+          <div class="max-w-md">
+            <h2 class="text-2xl font-bold text-white">{{ user && !routeUsername ? 'Create your first overdrive.' : 'No public overdrives yet.' }}</h2>
+            <p class="mt-2 text-sm text-neutral-400">{{ user && !routeUsername ? 'Give a collection an ID, then add videos, decks, and PDFs from Drive.' : 'Check back after the owner publishes a collection.' }}</p>
+          </div>
         </div>
       </div>
 
@@ -268,14 +322,14 @@
         <div v-if="publicLoadState === 'loading'" class="min-h-[55vh] flex items-center justify-center text-center">
           <div>
             <span class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent"></span>
-            <p class="mt-3 text-sm text-neutral-400">Loading reel...</p>
+            <p class="mt-3 text-sm text-neutral-400">Loading overdrive...</p>
           </div>
         </div>
 
         <div v-else-if="publicLoadState === 'error'" class="min-h-[55vh] flex items-center justify-center text-center">
           <div class="max-w-md">
-            <p class="text-xs font-bold uppercase text-cyan-400">Reel unavailable</p>
-            <h1 class="mt-2 text-3xl font-black text-white">This link does not point to a public reel.</h1>
+            <p class="text-xs font-bold uppercase text-cyan-400">Overdrive unavailable</p>
+            <h1 class="mt-2 text-3xl font-black text-white">This link does not point to a public overdrive.</h1>
             <p class="mt-3 text-sm text-neutral-400">{{ publicLoadError }}</p>
             <button @click="resetToHome" class="mt-6 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-extrabold text-black hover:bg-cyan-300">Go home</button>
           </div>
@@ -283,27 +337,23 @@
 
         <template v-else>
         
-        <!-- Reel Title & Sub-Bar Navigation -->
+        <!-- Overdrive Title & Item Navigation -->
         <div class="w-full mb-4 flex items-center justify-between gap-4 flex-wrap">
           <div>
+            <button v-if="!demoMode" @click="goToOverdriveIndex" class="mb-2 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-neutral-500 transition hover:text-cyan-400">
+              <span>&larr;</span><span>All overdrives</span>
+            </button>
             <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2">
               <span>{{ portfolioTitle }}</span>
             </h1>
             <p class="text-xs sm:text-sm text-neutral-400 mt-0.5 flex items-center gap-2">
-              <span>Slide {{ totalItems > 0 ? currentIndex + 1 : 0 }} of {{ totalItems }} &bull; {{ currentItem ? currentItem.title : 'Empty Reel' }}</span>
+              <span>Item {{ totalItems > 0 ? currentIndex + 1 : 0 }} of {{ totalItems }} &bull; {{ currentItem ? currentItem.title : 'Empty overdrive' }}</span>
               <span class="text-neutral-600">&bull;</span>
-              <span class="font-mono text-cyan-400 text-xs">/{{ activeNamespaceSlug }}/reel</span>
+              <span class="font-mono text-cyan-400 text-xs">/{{ activeNamespaceSlug }}/{{ currentReelSlug }}</span>
             </p>
           </div>
 
           <div class="flex items-center gap-2">
-            <button v-if="!demoMode" @click="openShareModal" class="px-3 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-800/80 text-cyan-300 hover:text-white hover:border-cyan-500 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
-              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
-              </svg>
-              <span>Share Reel</span>
-            </button>
-
             <div v-if="totalItems > 1" class="flex items-center gap-1.5">
               <button @click="prevSlide" class="p-2 rounded-xl bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 transition text-neutral-300 hover:text-white" title="Previous Slide (Left Arrow)">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -319,7 +369,7 @@
           </div>
         </div>
 
-        <!-- Reel Carousel Sandbox Player Viewport -->
+        <!-- Overdrive Player Viewport -->
         <div v-if="totalItems > 0" class="relative w-full aspect-video rounded-3xl overflow-hidden bg-black border border-neutral-800 shadow-2xl group">
           <template v-for="(item, idx) in safeItems" :key="idx">
             <div 
@@ -346,7 +396,7 @@
                 <p class="text-xs text-neutral-400 max-w-md mb-6 leading-relaxed">
                   {{ item.summary || 'Paste any public Google Drive sharing link (videos, PDFs, slides) to stream directly inside this player.' }}
                 </p>
-                <button @click="openAddModal" class="px-5 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-cyan-500/20">
+                <button v-if="canManageCurrentOverdrive" @click="openAddModal" class="px-5 py-2.5 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-cyan-500/20">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
@@ -377,20 +427,20 @@
           </button>
         </div>
 
-        <!-- Fallback for empty reel in user namespace -->
+        <!-- Fallback for an empty overdrive -->
         <div v-else class="w-full aspect-video rounded-3xl bg-neutral-900/50 border border-neutral-800 flex flex-col items-center justify-center p-6 text-center">
           <div class="p-4 rounded-full bg-neutral-800/80 text-neutral-400 mb-3">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
             </svg>
           </div>
-          <h3 class="text-base font-semibold text-white">{{ user ? 'Your reel is ready for its first item.' : 'Nothing has been published here yet.' }}</h3>
-          <p class="text-xs text-neutral-400 max-w-sm mt-1 mb-4">{{ user ? 'Add a public Google Drive link to start your reel.' : 'Check back after the owner publishes their work.' }}</p>
-          <button v-if="user" @click="openAddModal" class="px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-bold transition flex items-center gap-1.5">
+          <h3 class="text-base font-semibold text-white">{{ canManageCurrentOverdrive ? 'This overdrive is ready for its first item.' : 'Nothing has been published here yet.' }}</h3>
+          <p class="text-xs text-neutral-400 max-w-sm mt-1 mb-4">{{ canManageCurrentOverdrive ? 'Add a public Google Drive link to get started.' : 'Check back after the owner publishes their work.' }}</p>
+          <button v-if="canManageCurrentOverdrive" @click="openAddModal" class="px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-bold transition flex items-center gap-1.5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            <span>Add First Slide</span>
+            <span>Add First Item</span>
           </button>
         </div>
 
@@ -418,7 +468,7 @@
       <div v-if="authModalOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="glass-panel border border-neutral-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-bold text-white">Start your reel</h2>
+            <h2 class="text-lg font-bold text-white">Start your workspace</h2>
             <button @click="authModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
           </div>
 
@@ -492,7 +542,7 @@
               class="w-full py-3 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
             >
               <span v-if="authLoading" class="animate-spin w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full"></span>
-              <span>{{ authMode === 'signup' ? 'Create my reel' : 'Sign in' }}</span>
+              <span>{{ authMode === 'signup' ? 'Create my workspace' : 'Sign in' }}</span>
             </button>
           </form>
         </div>
@@ -511,8 +561,8 @@
                 </svg>
               </div>
               <div>
-                <h2 class="text-base font-bold text-white">Share Reel Showcase</h2>
-                <p class="text-[11px] text-neutral-400 font-mono">/{{ activeNamespaceSlug }} &bull; Direct route</p>
+                <h2 class="text-base font-bold text-white">Share Overdrive</h2>
+                <p class="text-[11px] text-neutral-400 font-mono">/{{ activeNamespaceSlug }}/{{ currentReelSlug }}</p>
               </div>
             </div>
             <button @click="shareModalOpen = false" class="text-neutral-500 hover:text-white transition text-xl leading-none">&times;</button>
@@ -520,7 +570,7 @@
 
           <div class="space-y-4 text-xs">
             <div>
-              <label class="block font-semibold text-neutral-300 mb-1.5">Direct Reel Link</label>
+              <label class="block font-semibold text-neutral-300 mb-1.5">Direct Link</label>
               <div class="flex gap-2">
                 <input 
                   type="text" 
@@ -570,7 +620,7 @@
                 <img :src="qrCodeUrl" alt="QR Code" class="w-16 h-16 rounded-lg bg-white p-1 shrink-0">
                 <div>
                   <p class="font-bold text-white text-xs">Scan &amp; View</p>
-                  <p class="text-[10px] text-neutral-400">Scan QR code with any camera to view reel.</p>
+                  <p class="text-[10px] text-neutral-400">Scan with any camera to open this overdrive.</p>
                 </div>
               </div>
 
@@ -612,13 +662,13 @@
             </div>
 
             <div class="p-3 bg-neutral-950 border border-neutral-800/80 rounded-2xl space-y-1">
-              <p class="font-bold text-white">2. Your reel is yours</p>
-              <p class="text-neutral-400">Your account controls the reel address and the items you publish.</p>
+              <p class="font-bold text-white">2. Your overdrives are yours</p>
+              <p class="text-neutral-400">Your account controls each overdrive address and the items you publish.</p>
             </div>
 
             <div class="p-3 bg-neutral-950 border border-neutral-800/80 rounded-2xl space-y-1">
               <p class="font-bold text-white">3. No advertising trackers</p>
-              <p class="text-neutral-400">We do not add ad pixels or tracking cookies to your reel.</p>
+              <p class="text-neutral-400">We do not add ad pixels or tracking cookies to your overdrives.</p>
             </div>
 
             <button 
@@ -641,20 +691,37 @@
               <svg class="w-5 h-5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M13 2L3 14h8l-2 8 10-12h-8l2-8z" />
               </svg>
-              <span>Add Item to Reel</span>
+              <span>{{ creatingOverdrive ? 'Create Overdrive' : 'Add Item' }}</span>
             </h2>
             <button @click="addModalOpen = false" class="text-neutral-500 hover:text-white transition text-lg">&times;</button>
           </div>
           <p class="text-xs text-neutral-400 mb-4">
-            Add a public Google Drive link to your reel. You can edit it anytime.
+            {{ creatingOverdrive ? 'Start a new collection with its first public Google Drive item.' : `Add another Drive item to /${currentReelSlug}.` }}
           </p>
 
           <form @submit.prevent="handleSaveResource" class="space-y-3.5">
+            <div v-if="creatingOverdrive">
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Overdrive ID</label>
+              <div class="flex items-center rounded-xl border border-neutral-800 bg-neutral-950 px-3 focus-within:border-cyan-400">
+                <span class="font-mono text-xs text-neutral-500">/{{ activeNamespaceSlug }}/</span>
+                <input
+                  type="text"
+                  required
+                  maxlength="64"
+                  placeholder="launch-film"
+                  v-model="newSlug"
+                  @input="normalizeNewSlug"
+                  class="min-w-0 flex-1 bg-transparent py-2 text-sm text-white outline-none font-mono"
+                >
+              </div>
+              <p class="mt-1 text-[10px]" :class="newSlugIssue ? 'text-rose-400' : 'text-neutral-500'">{{ newSlugIssue || 'This becomes the permanent public URL.' }}</p>
+            </div>
+
             <div>
-              <label class="block text-xs font-semibold text-neutral-300 mb-1">Reel title</label>
+              <label class="block text-xs font-semibold text-neutral-300 mb-1">Overdrive title</label>
               <input 
                 type="text" 
-                placeholder="e.g. Commercial Media Reel"
+                placeholder="e.g. Client Launch"
                 v-model="newTitle"
                 class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-sm text-white focus:border-cyan-400 outline-none"
               >
@@ -681,7 +748,7 @@
                 class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:border-cyan-400 outline-none font-mono"
               >
               <p class="text-[10px] text-neutral-500 mt-1">
-                Paste a public Drive link and we will prepare it to play in your reel.
+                Paste a public Drive link and we will prepare it for this overdrive.
               </p>
             </div>
 
@@ -699,11 +766,11 @@
               </button>
               <button 
                 type="submit" 
-                :disabled="saveLoading"
+                :disabled="saveLoading || (creatingOverdrive && !!newSlugIssue)"
                 class="px-5 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-black text-xs font-extrabold transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
               >
                 <span v-if="saveLoading" class="animate-spin w-3 h-3 border-2 border-black border-t-transparent rounded-full"></span>
-                <span>Add to reel</span>
+                <span>{{ creatingOverdrive ? 'Create Overdrive' : 'Add Item' }}</span>
               </button>
             </div>
           </form>
@@ -802,12 +869,12 @@
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h2 class="text-lg sm:text-xl font-black text-white tracking-tight">How your reel works</h2>
+                  <h2 class="text-lg sm:text-xl font-black text-white tracking-tight">How overdrives work</h2>
                   <span class="text-[10px] font-semibold bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-500/40 uppercase">
                     Powered by m-stash
                   </span>
                 </div>
-                <p class="text-xs text-neutral-400">A simple route from a Drive link to a shareable reel.</p>
+                <p class="text-xs text-neutral-400">Organize Drive links into stable, shareable collections.</p>
               </div>
             </div>
             <button @click="mStashModalOpen = false" class="text-neutral-500 hover:text-white transition text-2xl leading-none">&times;</button>
@@ -817,10 +884,10 @@
             
             <div class="p-4 bg-neutral-950 border border-neutral-800 rounded-2xl space-y-2">
               <h3 class="font-bold text-white text-sm flex items-center gap-1.5 text-cyan-300">
-                <span>1. Choose your reel address</span>
+                <span>1. Claim your namespace</span>
               </h3>
               <p class="text-neutral-300 leading-relaxed">
-                Claim a simple address such as <code class="text-cyan-300 font-mono">/your-name</code>. It is the link you will share when your reel is ready.
+                Claim a public username such as <code class="text-cyan-300 font-mono">/your-name</code>. Every overdrive you create lives under it.
               </p>
             </div>
 
@@ -829,7 +896,7 @@
                 <span>2. Add your Drive links</span>
               </h3>
               <p class="text-neutral-300 leading-relaxed">
-                Add videos, decks, or PDFs you already share from Google Drive. Your files stay there; the reel simply presents them beautifully.
+                Create an overdrive, then add videos, decks, or PDFs you already share from Google Drive. Your files stay there.
               </p>
             </div>
 
@@ -838,7 +905,7 @@
                 <span>3. Share when you are ready</span>
               </h3>
               <p class="text-neutral-300 leading-relaxed">
-                Your reel has one clean link, so clients and collaborators always see the latest version. Only the links you add appear there.
+                Each overdrive gets a direct link such as <code class="text-cyan-300 font-mono">/your-name/launch-film</code>. Visitors can open it directly or browse everything under your username.
               </p>
             </div>
 
@@ -966,12 +1033,15 @@
       const authError = ref('');
       const authLoading = ref(false);
 
-      // Workspace & Reel State
+      // Workspace & Overdrive State
       const routeHash = ref(window.location.hash.replace(/^#\/?/, ''));
       const isLandingDefault = ref(!routeHash.value && !user.value);
       const demoMode = ref(false);
-      const portfolioTitle = ref('Reel Showcase');
+      const portfolioTitle = ref('Untitled Overdrive');
       const items = ref([]);
+      const overdrives = ref([]);
+      const overdriveListState = ref('idle');
+      const overdriveListError = ref('');
       const currentIndex = ref(0);
       const currentReelSlug = ref('main');
       const publicLoadState = ref(routeHash.value ? 'loading' : 'idle');
@@ -981,6 +1051,7 @@
 
       // Add Resource Form
       const newSlug = ref('main');
+      const creatingOverdrive = ref(false);
       const newTitle = ref('');
       const newItemTitle = ref('');
       const newUrl = ref('');
@@ -1001,7 +1072,21 @@
       });
 
       const routeUsername = computed(() => routeHash.value.split('/').filter(Boolean)[0] || '');
-      const routeReelSlug = computed(() => routeHash.value.split('/').filter(Boolean)[1] || 'main');
+      const routeReelSlug = computed(() => routeHash.value.split('/').filter(Boolean)[1] || '');
+      const showOverdriveIndex = computed(() => !demoMode.value && (
+        (user.value && !routeUsername.value) ||
+        (routeUsername.value && !routeReelSlug.value)
+      ));
+      const canManageCurrentOverdrive = computed(() => !!user.value && (
+        !routeUsername.value || routeUsername.value === userNamespace.value?.slug
+      ));
+      const newSlugIssue = computed(() => {
+        if (!creatingOverdrive.value) return '';
+        if (newSlug.value.length < 3 || newSlug.value.length > 64) return 'Use 3-64 characters.';
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(newSlug.value)) return 'Use lowercase letters, numbers, and single hyphens.';
+        if (overdrives.value.some((overdrive) => overdrive.slug === newSlug.value)) return 'That overdrive ID already exists.';
+        return '';
+      });
 
       const activeNamespaceSlug = computed(() => {
         if (demoMode.value) return 'sample';
@@ -1024,12 +1109,11 @@
       // Computed Share Links
       const shareUrl = computed(() => {
         const base = window.location.origin + window.location.pathname;
-        const suffix = currentReelSlug.value === 'main' ? '' : `/${currentReelSlug.value}`;
-        return `${base}#/${activeNamespaceSlug.value}${suffix}`;
+        return `${base}#/${activeNamespaceSlug.value}/${currentReelSlug.value}`;
       });
 
       const twitterShareUrl = computed(() => {
-        const text = encodeURIComponent(`Check out my cloud reel /${activeNamespaceSlug.value}:`);
+        const text = encodeURIComponent(`View my overdrive /${activeNamespaceSlug.value}/${currentReelSlug.value}:`);
         return `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(shareUrl.value)}`;
       });
 
@@ -1038,13 +1122,13 @@
       });
 
       const whatsappShareUrl = computed(() => {
-        const text = encodeURIComponent(`Check out my cloud reel: ${shareUrl.value}`);
+        const text = encodeURIComponent(`View my overdrive: ${shareUrl.value}`);
         return `https://api.whatsapp.com/send?text=${text}`;
       });
 
       const emailShareUrl = computed(() => {
-        const subject = encodeURIComponent(`Cloud Reel Showcase - /${activeNamespaceSlug.value}`);
-        const body = encodeURIComponent(`Check out my interactive cloud reel showcase:\n\n${shareUrl.value}`);
+        const subject = encodeURIComponent(`Overdrive - /${activeNamespaceSlug.value}/${currentReelSlug.value}`);
+        const body = encodeURIComponent(`View this overdrive:\n\n${shareUrl.value}`);
         return `mailto:?subject=${subject}&body=${body}`;
       });
 
@@ -1139,12 +1223,59 @@
         }
       };
 
-      // Load the owner's canonical reel or a public reel from a shared URL.
+      const resourceItems = (resource) => {
+        if (!resource || !resource.content) return [];
+        if (typeof resource.content === 'object') {
+          if (Array.isArray(resource.content)) return resource.content;
+          return Array.isArray(resource.content.items) ? resource.content.items : [];
+        }
+        try {
+          const parsed = JSON.parse(resource.content);
+          if (Array.isArray(parsed)) return parsed;
+          return parsed && Array.isArray(parsed.items) ? parsed.items : [];
+        } catch {
+          return [];
+        }
+      };
+
+      const loadOverdrives = async () => {
+        overdriveListState.value = 'loading';
+        overdriveListError.value = '';
+        try {
+          const isPublicIndex = !!routeUsername.value;
+          const collectionPath = isPublicIndex
+            ? `/v1/public/${encodeURIComponent(routeUsername.value)}/reel?limit=20`
+            : '/v1/me/resources/reel?limit=20';
+          const collection = await apiRequest(collectionPath, { authenticated: !isPublicIndex });
+          const previews = Array.isArray(collection.data) ? collection.data : [];
+          overdrives.value = await Promise.all(previews.map(async (preview) => {
+            const documentPath = isPublicIndex
+              ? `/v1/public/${encodeURIComponent(routeUsername.value)}/reel/${encodeURIComponent(preview.slug)}`
+              : `/v1/me/resources/reel/${encodeURIComponent(preview.slug)}`;
+            try {
+              const response = await apiRequest(documentPath, { authenticated: !isPublicIndex });
+              return { ...preview, itemCount: resourceItems(response.data).length };
+            } catch {
+              return { ...preview, itemCount: 0 };
+            }
+          }));
+          overdriveListState.value = 'loaded';
+          return true;
+        } catch (error) {
+          overdrives.value = [];
+          overdriveListError.value = error.message || 'The overdrives could not be loaded.';
+          overdriveListState.value = 'error';
+          return false;
+        }
+      };
+
+      // Load one shared overdrive, or list every overdrive under a username.
       const loadReelData = async () => {
         items.value = [];
         publicLoadError.value = '';
 
         if (routeUsername.value) {
+          if (!routeReelSlug.value) return loadOverdrives();
           publicLoadState.value = 'loading';
           currentReelSlug.value = routeReelSlug.value;
           try {
@@ -1157,8 +1288,8 @@
             return true;
           } catch (error) {
             publicLoadError.value = error.status === 404
-              ? 'Check the address or ask the owner to publish this reel.'
-              : error.message || 'The reel could not be loaded.';
+              ? 'Check the address or ask the owner to publish this overdrive.'
+              : error.message || 'The overdrive could not be loaded.';
             publicLoadState.value = 'error';
             return false;
           }
@@ -1166,45 +1297,16 @@
 
         publicLoadState.value = 'idle';
         if (!token.value) return false;
-        try {
-          const collection = await apiRequest('/v1/me/resources/reel?limit=20');
-          const exists = Array.isArray(collection.data)
-            && collection.data.some((resource) => resource.slug === 'main');
-          if (!exists) return false;
-
-          const response = await apiRequest('/v1/me/resources/reel/main');
-          currentReelSlug.value = 'main';
-          parseAndApplyResource(response.data);
-          return true;
-        } catch (error) {
-          if (error.status !== 404) console.warn('Could not load your reel:', error);
-          return false;
-        }
+        return loadOverdrives();
       };
 
       const parseAndApplyResource = (resource) => {
         if (!resource) return;
         isLandingDefault.value = false;
-        portfolioTitle.value = resource.title || 'Reel Showcase';
+        portfolioTitle.value = resource.title || 'Untitled Overdrive';
 
-        let parsedItems = [];
-        if (resource.content) {
-          if (typeof resource.content === 'string') {
-            try {
-              const p = JSON.parse(resource.content);
-              if (Array.isArray(p)) parsedItems = p;
-              else if (p && Array.isArray(p.items)) parsedItems = p.items;
-            } catch (e) {}
-          } else if (typeof resource.content === 'object') {
-            if (Array.isArray(resource.content)) parsedItems = resource.content;
-            else if (Array.isArray(resource.content.items)) parsedItems = resource.content.items;
-          }
-        }
-
-        if (parsedItems.length > 0) {
-          items.value = parsedItems;
-          currentIndex.value = 0;
-        }
+        items.value = resourceItems(resource);
+        currentIndex.value = 0;
       };
 
       // Auth Handlers (Signup / Login)
@@ -1247,7 +1349,7 @@
           passwordInput.value = '';
         } catch (err) {
           authError.value = err.status === 409
-            ? 'That email or reel address is already in use. Log in if it is yours, or choose another address.'
+            ? 'That email or public username is already in use. Log in if it is yours, or choose another username.'
             : err.message || 'Authentication failed.';
         } finally {
           authLoading.value = false;
@@ -1266,9 +1368,8 @@
         }
 
           await fetchNamespace();
-          const hasReel = await loadReelData();
+          await loadReelData();
           await checkBackend();
-          if (!hasReel) openAddModal();
       };
 
       const verifySession = async () => {
@@ -1302,11 +1403,31 @@
       const openAddModal = () => {
         if (!token.value) {
           authModalOpen.value = true;
+        } else if (showOverdriveIndex.value) {
+          openCreateOverdrive();
         } else {
-          newSlug.value = 'main';
-          newTitle.value = portfolioTitle.value !== 'Reel Showcase' ? portfolioTitle.value : '';
+          creatingOverdrive.value = false;
+          newSlug.value = currentReelSlug.value;
+          newTitle.value = portfolioTitle.value !== 'Untitled Overdrive' ? portfolioTitle.value : '';
+          newItemTitle.value = '';
+          newUrl.value = '';
+          saveError.value = '';
           addModalOpen.value = true;
         }
+      };
+
+      const openCreateOverdrive = () => {
+        creatingOverdrive.value = true;
+        newSlug.value = '';
+        newTitle.value = '';
+        newItemTitle.value = '';
+        newUrl.value = '';
+        saveError.value = '';
+        addModalOpen.value = true;
+      };
+
+      const normalizeNewSlug = () => {
+        newSlug.value = newSlug.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
       };
 
       // Save Resource Handler (POST /v1/me/resources/reel -> PUT on 409)
@@ -1315,23 +1436,28 @@
         saveError.value = '';
 
         const formattedUrl = formatDrivePreviewUrl(newUrl.value);
-        const slug = 'main';
-        const wasEmpty = items.value.length === 0;
+        const slug = creatingOverdrive.value ? newSlug.value : currentReelSlug.value;
+        if (creatingOverdrive.value && newSlugIssue.value) {
+          saveError.value = newSlugIssue.value;
+          saveLoading.value = false;
+          return;
+        }
+        const wasEmpty = creatingOverdrive.value || items.value.length === 0;
 
         const newItem = {
           title: newItemTitle.value || 'Drive Resource',
           url: formattedUrl,
           type: 'drive',
-          summary: `Added to /${activeNamespaceSlug.value}/reel/${slug}`
+          summary: `Added to /${activeNamespaceSlug.value}/${slug}`
         };
 
-        const currentList = Array.isArray(items.value) ? items.value : [];
+        const currentList = creatingOverdrive.value ? [] : (Array.isArray(items.value) ? items.value : []);
         const updatedItems = [...currentList, newItem];
 
         const resourcePayload = {
           slug,
-          title: newTitle.value || `Reel Showcase /${slug}`,
-          summary: `mdb-overdrive showcase deck for /${activeNamespaceSlug.value}`,
+          title: newTitle.value || `Overdrive /${slug}`,
+          summary: `mdb-overdrive collection for /${activeNamespaceSlug.value}/${slug}`,
           content: JSON.stringify({ items: updatedItems }),
           visibility: 'public'
         };
@@ -1366,6 +1492,7 @@
           parseAndApplyResource(verified.data);
           currentReelSlug.value = slug;
           currentIndex.value = updatedItems.length - 1;
+          creatingOverdrive.value = false;
 
           addModalOpen.value = false;
           newUrl.value = '';
@@ -1380,7 +1507,7 @@
         }
       };
 
-      // Slide Navigation
+      // Item Navigation
       const nextSlide = () => {
         if (totalItems.value === 0) return;
         currentIndex.value = (currentIndex.value + 1) % totalItems.value;
@@ -1395,17 +1522,26 @@
         shareModalOpen.value = true;
       };
 
+      const openOverdrive = (slug) => {
+        window.location.hash = `#/${activeNamespaceSlug.value}/${slug}`;
+      };
+
+      const goToOverdriveIndex = () => {
+        const username = routeUsername.value || activeNamespaceSlug.value;
+        window.location.hash = user.value && username === userNamespace.value?.slug ? '' : `#/${username}`;
+      };
+
       const openDemo = () => {
         demoMode.value = true;
         publicLoadState.value = 'loaded';
-        portfolioTitle.value = 'Sample Reel';
+        portfolioTitle.value = 'Sample Overdrive';
         currentReelSlug.value = 'main';
         currentIndex.value = 0;
         items.value = [{
           title: 'Launch Film',
           url: 'https://drive.google.com/file/d/1P8V_OjC9A494KiRm7XihKAvpfKsM3eN0/preview',
           type: 'drive',
-          summary: 'A public Google Drive video embedded in the reel player.'
+          summary: 'A public Google Drive video embedded in this overdrive.'
         }];
       };
 
@@ -1433,7 +1569,7 @@
         if (!user.value) {
           isLandingDefault.value = true;
           items.value = [];
-          portfolioTitle.value = 'Reel Showcase';
+          portfolioTitle.value = 'Untitled Overdrive';
         }
       };
 
@@ -1461,7 +1597,7 @@
           routeHash.value = hashVal;
           loadReelData(hashVal);
         } else if (hasValidSession) {
-          loadReelData();
+          loadOverdrives();
         }
 
         window.addEventListener('hashchange', () => {
@@ -1470,7 +1606,9 @@
           if (newHash) {
             loadReelData(newHash);
           } else {
-            if (!user.value) isLandingDefault.value = true;
+            items.value = [];
+            if (user.value) loadOverdrives();
+            else isLandingDefault.value = true;
           }
         });
       });
@@ -1500,18 +1638,26 @@
         authLoading,
         isLandingDefault,
         demoMode,
+        showOverdriveIndex,
+        canManageCurrentOverdrive,
         routeUsername,
         publicLoadState,
         publicLoadError,
         portfolioTitle,
         items,
+        overdrives,
+        overdriveListState,
+        overdriveListError,
         safeItems,
         totalItems,
         currentIndex,
         currentItem,
+        currentReelSlug,
         apiStatus,
         responseLog,
         newSlug,
+        creatingOverdrive,
+        newSlugIssue,
         newTitle,
         newItemTitle,
         newUrl,
@@ -1534,10 +1680,15 @@
         verifySession,
         logout,
         openAddModal,
+        openCreateOverdrive,
+        normalizeNewSlug,
+        loadOverdrives,
         handleSaveResource,
         nextSlide,
         prevSlide,
         openShareModal,
+        openOverdrive,
+        goToOverdriveIndex,
         openDemo,
         copyShareLink,
         copyEmbedSnippet,
