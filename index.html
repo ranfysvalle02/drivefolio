@@ -90,7 +90,14 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
             </svg>
           </button>
-          <button v-else @click="authMode = 'login'; authError = ''; authModalOpen = true" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition">
+          <button v-if="isAdmin && !routeUsername && !demoMode" @click="toggleAdminConsole" :title="showAdminConsole ? 'Open my overdrives' : 'Open deployment administration'" class="flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-bold transition" :class="showAdminConsole ? 'border-cyan-800 bg-cyan-950 text-cyan-300' : 'border-amber-800 bg-amber-950 text-amber-300'">
+            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path v-if="showAdminConsole" stroke-linecap="round" stroke-linejoin="round" d="M3 13.5h18M5.25 6.75h13.5A2.25 2.25 0 0121 9v8.25a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 17.25V9a2.25 2.25 0 012.25-2.25z" />
+              <path v-else stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 0115 0m-15 0H3m16.5 0H21m-9-7.5V3m0 18v-1.5" />
+            </svg>
+            <span>{{ showAdminConsole ? 'My overdrives' : 'Admin data' }}</span>
+          </button>
+          <button v-if="!user" @click="authMode = 'login'; authError = ''; authModalOpen = true" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-xs font-semibold text-neutral-200 transition">
             Sign in
           </button>
 
@@ -1167,6 +1174,7 @@
       const adminResources = ref([]);
       const adminState = ref('idle');
       const adminError = ref('');
+      const adminConsoleOpen = ref(false);
       const adminType = ref('reel');
       const adminVisibility = ref('all');
       const selectedAdminResource = ref(null);
@@ -1207,7 +1215,7 @@
       const routeUsername = computed(() => routeHash.value.split('/').filter(Boolean)[0] || '');
       const routeReelSlug = computed(() => routeHash.value.split('/').filter(Boolean)[1] || '');
       const isAdmin = computed(() => user.value?.role === 'admin');
-      const showAdminConsole = computed(() => isAdmin.value && !routeUsername.value && !demoMode.value);
+      const showAdminConsole = computed(() => isAdmin.value && adminConsoleOpen.value && !routeUsername.value && !demoMode.value);
       const showOverdriveIndex = computed(() => !demoMode.value && (
         (user.value && !routeUsername.value) ||
         (routeUsername.value && !routeReelSlug.value)
@@ -1386,6 +1394,16 @@
           adminError.value = error.message || 'Shared deployment data could not be loaded.';
           adminState.value = 'error';
           return false;
+        }
+      };
+
+      const toggleAdminConsole = async () => {
+        adminConsoleOpen.value = !adminConsoleOpen.value;
+        if (adminConsoleOpen.value) {
+          await loadAdminResources();
+        } else {
+          await fetchNamespace();
+          await loadOverdrives();
         }
       };
 
@@ -1669,12 +1687,8 @@
         }
 
         await verifySession();
-        if (isAdmin.value) {
-          await loadAdminResources();
-        } else {
-          await fetchNamespace();
-          await loadReelData();
-        }
+        await fetchNamespace();
+        await loadReelData();
         await checkBackend();
       };
 
@@ -1697,6 +1711,7 @@
         token.value = '';
         user.value = null;
         userNamespace.value = null;
+        adminConsoleOpen.value = false;
         localStorage.removeItem('overdrive_token');
         localStorage.removeItem('overdrive_user');
         localStorage.removeItem('overdrive_namespace');
@@ -1893,8 +1908,7 @@
         if (token.value) {
           hasValidSession = await verifySession();
           if (hasValidSession) {
-            if (isAdmin.value) await loadAdminResources();
-            else await fetchNamespace();
+            await fetchNamespace();
             await checkBackend();
           }
         }
@@ -1904,7 +1918,7 @@
           routeHash.value = hashVal;
           loadReelData(hashVal);
         } else if (hasValidSession) {
-          if (!isAdmin.value) loadOverdrives();
+          loadOverdrives();
         }
 
         window.addEventListener('hashchange', () => {
@@ -1914,7 +1928,7 @@
             loadReelData(newHash);
           } else {
             items.value = [];
-            if (isAdmin.value) loadAdminResources();
+            if (showAdminConsole.value) loadAdminResources();
             else if (user.value) loadOverdrives();
             else isLandingDefault.value = true;
           }
@@ -1951,6 +1965,7 @@
         demoMode,
         isAdmin,
         showAdminConsole,
+        toggleAdminConsole,
         showOverdriveIndex,
         canManageCurrentOverdrive,
         routeUsername,
