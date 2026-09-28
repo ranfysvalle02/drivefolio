@@ -2,7 +2,7 @@
 
 Portfolio powered by Google Drive.
 
-# Putting MongoDB Atlas in Overdrive: Direct-to-Database Architecture with m-stash
+# Putting MongoDB Atlas in Overdrive
 
 ---
 
